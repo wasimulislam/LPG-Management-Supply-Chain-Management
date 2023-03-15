@@ -1,0 +1,382 @@
+screen mopreprdheaderadmin
+
+     sidebar list bom,list asset
+     sections form one,jscript myscript
+	
+	
+     list asset
+        caption "Asset Credentials of "+xitem+", "+caitem.xdesc("xitem='"+xitem+"'")
+        table caitem 
+        order xitem
+        select "xitem='"+xitem+"'"
+	    rows 25
+        objects xfagroup,xfatype,xfacat 
+		
+        headers "Asset Group","Asset Type","Asset Category" 
+     end list
+	
+	 
+     list bom
+        caption "Required Components List: "+xbatch
+        table modetail
+        order xbatch,xrow
+        fixed xbatch
+        rows 50
+        objects xrow,~ 
+                xitem attrib(link "login?screen=mopreprddetailadmin&command=Show&xbatch=?&xrow=?"),~
+				desc equals((select xdesc from caitem where zid=modetail.zid and xitem=modetail.xitem)),xwh,~
+                xqtyreq,xpercent,xamount,unit equals((select xunit from caitem where zid=modetail.zid and xitem=modetail.xitem)),~//xstype
+				xavail,xtype
+
+        headers "Line No","Component","Description","Store","Required Qty","Percentage of Raw materials Cost","Fixed Amount","Unit","Available Stock","Stock Type"//,"Kitted Qty","Required Qty"
+
+     end list
+	 
+ 
+
+     form one
+        caption "Batch For Pre-Process Update" 
+        table moheader
+        order xbatch
+		select "left(xbatch,4) = 'BATP'"
+        return "login"
+        layout 2  
+        pstyle 3
+		objects Clear,Show,Update, Delete, Top, Previous, Next, Bottom,Detail,~ //
+          xbatch,xdate,xitem width(15),xdesc,~
+		  xbomkey,xbomdesc,xwh,xwhdesc,~
+		  xqtyprd display(hide),xqtycom,xunit,xstatusmor display(const),xlong,~
+          xstatus display(const),xsup display(hide),xstatusreq display(hide), ~
+          xcus  display(hide),xwhcomp display(hide),xstatusfa display(const),xvoucher display(const),~
+		  xnote1 display(const),xpkey display(hide) attrib(local),,,~
+		  signatorysec display(const),,,~
+		  xpreparer display(hide),preparer display(const),~		
+		  xsignatory1 display(hide),signatory1  display(const),~
+		  xsignatory2 display(hide),signatory2 display(const),~
+		  xsignatory3 display(hide),signatory3 display(const),~
+		  xsignatory4 display(hide),signatory4 display(const),~
+		  xsignatory5 display(hide),signatory5 display(const),~
+		  xsignreject display(hide),signreject display(const)
+		
+//----------------Declare Local Field--------------------		
+		
+		field xpreparer
+		caption Preparer
+        end field
+		
+		field xsignatory1
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory1=moheader.xsignatory1("xbatch='"+xbatch+"'")
+		  end event
+        end field
+		
+		field xsignatory2
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory2=moheader.xsignatory2("xbatch='"+xbatch+"'")
+		  end event
+        end field
+		
+		field xsignatory3
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory3=moheader.xsignatory3("xbatch='"+xbatch+"'")
+		  end event
+        end field
+		
+		field xsignatory4
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory4=moheader.xsignatory4("xbatch='"+xbatch+"'")
+		  end event
+        end field
+		
+		field xsignatory5
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory5=moheader.xsignatory5("xbatch='"+xbatch+"'")
+		  end event
+        end field
+		
+		field xsignreject
+		  attrib local
+		  event after
+		  set xsignreject=moheader.xsignreject("xbatch='"+xbatch+"'")
+		  end event
+        end field
+		
+			
+		field signatorysec
+		attrib local
+		caption <span class=sheader style="	BACKGROUND:#0480ba;	PADDING-BOTTOM: 5px;PADDING-LEFT: 10px; PADDING-RIGHT: 50px; 	PADDING-TOP: 2px;">Signatories</span>
+		display const
+		//column 2
+		end field	
+		
+		
+		field preparer
+          caption Preparer
+		  attrib local
+		  event after
+		  if xpreparer .ne. ""
+		  set preparer=pdmst.xname("xstaff='"+xpreparer+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xpreparer+"'")+", "+pdmst.xdeptname("xstaff='"+xpreparer+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		field signatory1
+          caption pick,"select xsignatory1 from pdsignatoryrpt where xtypetrn='Pre Process Batch Approval'"
+		  attrib local
+		  event after
+		  if xsignatory1 .ne. ""
+		  set signatory1=pdmst.xname("xstaff='"+xsignatory1+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory1+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory1+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		field signatory2
+          caption pick,"select xsignatory2 from pdsignatoryrpt where xtypetrn='Pre Process Batch Approval'"
+		  attrib local
+		  event after
+		  if xsignatory2 .ne. ""
+		  set signatory2=pdmst.xname("xstaff='"+xsignatory2+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory2+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory2+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		
+		field signatory3
+          caption pick,"select xsignatory3 from pdsignatoryrpt where xtypetrn='Pre Process Batch Approval'"
+		  attrib local
+		  event after
+		  if xsignatory3 .ne. ""
+		  set signatory3=pdmst.xname("xstaff='"+xsignatory3+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory3+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory3+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		field signatory4
+          caption pick,"select xsignatory4 from pdsignatoryrpt where xtypetrn='Pre Process Batch Approval'"
+		  attrib local
+		  event after
+		  if xsignatory4 .ne. ""
+		  set signatory4=pdmst.xname("xstaff='"+xsignatory4+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory4+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory4+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		field signatory5
+          caption pick,"select xsignatory5 from pdsignatoryrpt where xtypetrn='Pre Process Batch Approval'"
+		  attrib local
+		  event after
+		  if xsignatory5 .ne. ""
+		  set signatory5=pdmst.xname("xstaff='"+xsignatory5+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory5+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory5+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		field signreject
+          caption Reject Signatory
+		  attrib local
+		  event after
+		  if xsignreject .ne. ""
+		  set signreject=pdmst.xname("xstaff='"+xsignreject+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignreject+"'")+", "+pdmst.xdeptname("xstaff='"+xsignreject+"'")+"</font>"
+		  end if	
+		  end event
+        end field
+				
+
+		
+		field xnote1
+			caption Reject Note
+			width 40
+			height 2
+			column 1
+		end field				
+		
+		field xordernum
+			caption Work Order No
+			pick list xopordnum
+			width(20)
+		end field
+		
+		field xstatus
+			caption Approval Status
+			display combo
+			pick "Open,Recommended,Approved,Rejected"
+		end field	
+		
+		field xstatusmor
+			caption Production Status
+			display combo
+			pick "Open,Exploded,Completed"
+		end field		
+		
+		field xitem
+			caption Finished Item Code
+			pick list xitemprefinish
+			embed autocomplete="off"
+		end field
+		
+		field xwhcomp
+			event before
+			set xwhcomp=xwh
+			end event 
+		end field
+		
+		field xbomkey
+			embed autocomplete="off"
+			pick list xbomkeybmp//4item
+		end field
+		
+		field xdum
+			caption
+			attrib local
+			display const
+		end field
+		
+		field xlong
+			caption Note
+			width 40
+			height 1
+		end field
+		
+		field  xqtyprd
+			caption Batch Quantity
+			embed autocomplete="off"
+			default "1"
+		end field
+		
+		field xqtycom
+			caption Production Quantity
+			embed autocomplete="off"
+			default "1"
+		end field
+		  
+		field xbomdesc
+			attrib local
+			caption BOM Description
+			display const
+			event after
+				set xbomdesc = bmbomheader.xdesc("xbomkey='"+xbomkey+"'")
+			end event
+		end field
+		
+		field xdesc
+			attrib local
+			caption Description
+			display const
+			event after
+				set xdesc = caitem.xdesc("xitem='"+xitem+"'")
+			end event
+		end field
+		
+		field xunit 
+			caption Production Unit 
+			display const
+			event after
+				set xunit = caitem.xunit("xitem='"+xitem+"'")
+			end event
+		end field
+
+		field xwh
+			pick list xwh
+			caption Store
+			default #wh
+			embed autocomplete="off"
+		end field
+		
+		field xwhdesc
+			attrib local
+			display const
+			caption Plant / Store Name
+			event after
+				set xwhdesc=branchview.xlong("xcode='"+xwh+"'")
+			end event
+		end field
+
+        field xbatch
+		caption Batch No.
+		pick list xbatchpre
+         event after
+            set globals(xbatch)=xbatch
+            set globals(xbomkey)=xbomkey
+          end event
+        end field
+		
+       	field Show
+			event after
+			set imstatus=#sesql("select top 1 ximtrnnum from imtrn where zid='"+#id+"' and xdocnum='"+xbatch+"'")
+				if imstatus .ne. ""
+					Print "Inventory Transaction Exist!"
+				end if
+			end event
+		end field
+
+		
+		field update
+			event before
+			set xunit = caitem.xunit("xitem='"+xitem+"'")
+			set xstatus ="Open"
+			set xpreparer=pdmst.xstaff("xposition='"+#position+"'")
+			set ordernum =#sql("select xordernum from moheader where xordernum='"+xordernum+"' and xbatch<> '"+xbatch+"'") 
+			set batch =#sql("select xbatch from moheader where xordernum='"+xordernum+"' and xbatch<> '"+xbatch+"'") 
+			set xwha = xcodes.xcode("xtype='Branch' and xcode='"+xwh+"' and zactive=1")
+			set cimtmu=caitem.xitem("xitem='"+xitem+"' and zactive=1")
+			set bomitem = #sesql("select xitem from bmbomheader where zid='"+#id+"' and xbomkey='"+xbomkey+"'")
+			set imstatus=#sesql("select top 1 ximtrnnum from imtrn where zid='"+#id+"' and xdocnum='"+xbatch+"'")
+			if xbomkey .eq.""
+				error "Please select BOM No!"
+			else if cimtmu .ne. xitem
+				error "Cannot Proceed -- Finished Product Code Does Not Matched"
+			else if xwha .ne. xwh
+				error "Cannot Proceed -- Store Does Not Matched"
+			else if xqtycom == 0
+				error "Please set Production Qty"
+			else if xitem .ne. bomitem
+				error "Please select correct BOM Key!"
+			else if imstatus .ne. ""
+				error "Please Delete Inventory Transaction First!"
+			end event
+			event after
+			set temp = #sql("update modetail set xstatusar='Open' where xcrnnum='"+xcrnnum+"'")	
+			end event 
+		end field
+		
+		
+		
+		
+	    field Detail
+          embed onclick="clicked(this)"
+        end field 
+	
+        embed onsubmit="submitit(this)"
+		
+     end form
+
+     jscript myscript
+    <script language="javascript" type="text/javascript">
+	
+        var detail
+
+        function clicked(b){
+          detail=b.value
+        }
+		
+        function submitit(form){
+          if (detail=="Detail"){
+            form.screen.value = "mopreprddetailadmin"
+            form.searchbutton.value = "Top"
+          }
+        }
+		
+        </script>
+     end jscript
+
+end screen

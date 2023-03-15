@@ -1,0 +1,173 @@
+screen cacusinfo
+     sidebar list one
+     sections  form one,jscript myscript
+
+  
+  list one
+    caption "Customer Info"
+    table cacusinfo
+    order xcus,xrow desc
+	dtordering false
+    fixed xcus
+	//select "zactive=1"
+	maxwidth 750
+    rows 20
+    objects  xrow attrib(link "login?screen=cacusinfo&command=Show&xrow=?"), ~
+             xdate,xtaxyear,xshnoqty,xwhnoqty,xtruckqty,xpknoqty,xwrksqty,xdealerqty,xretailerqty,xmtsize
+	headers "Row","Date","LPG Business Beginning Year","Showroom(s)","Warehouse(s)","Truck(s)","Pick-up(s)","Worker(s)","Dealer(s)","Retiler(s)","Market Size"
+  end list
+  
+  
+  form one
+     form one
+        caption "Survey Information of <br>"+xcus+""
+        table cacusinfo
+        primarykey zid,xcus,xrow
+        order xcus,xrow
+	    fixed xcus		  
+        return "login"
+        layout 2
+        pstyle 3
+        objects Add,Update,Show,Clear,Back,Delete,Confirm,"<p>" ,~
+                xrow attrib(row 0 1),xdate,xsector,xcstime,xtaxyear,xshnoqty,xwhnoqty,xtruckqty,xpknoqty,xwrksqty,xdealerqty,xretailerqty,xmtsize,xcainstype,xstatus,xnote,zactive display(hide)
+
+
+ 
+	
+	    field xnote
+		caption Other Important Notes About The Distributor
+		weight 90
+		height 2
+		column 2
+	    end field
+		
+		field xrow
+		display hide
+		end field
+ 	
+	    field xlandphone
+	    end field
+		
+		field xcstime
+	    end field
+		
+		field xsector
+		caption Other Sectors
+	    end field
+		
+		field xtaxyear
+		display combo
+		caption LPG Business Beginning Year
+		pick "select xcode from xcodes where xtype='OP year' and zactive='1'"
+	    end field
+		
+		field xshnoqty
+		event after
+		 if xstatus .eq. "Confirmed"
+		  set #field(update.attrib)="disabled"
+		  set #field(Delete.attrib)="disabled"
+		  set #field(confirm.attrib)="disabled"
+		 end if
+		end event 
+	    end field
+		
+		field xwhnoqty
+	    end field
+		
+		field xtruckqty
+		caption Number of Trucks
+	    end field
+		
+		field xpknoqty
+	    end field
+		
+		field xwrksqty
+	    end field
+
+	    field xdealerqty
+	    end field
+
+	    field xretailerqty
+	    end field
+		
+		field xmtsize
+		caption Market Size (TON/Year)
+	    end field
+		
+		field xcainstype
+		display hide
+		caption Executive or Retailer
+		pick "Executive,Retailer"
+		//display combo
+	    end field
+		
+		field Add
+		 event before
+		 //int row=0
+		 //set row=xrow
+		 set zactive=1
+		 set date=#date
+		 set cdate=#date
+		 set xstatus= "Open"
+		 if xdate .gt. date
+			 error "Cannot Proceed--Future Date is not allowed"
+		 else if xcstime .gt. cdate
+		     error "Cannot Proceed--Future Date is not allowed"
+		 end event
+		 //event after
+		 
+		 //set temp=#sql("update cacusinfo set zactive=0 where xcus='"+xcus+"' and xrow<>'"+xrow+"'")
+		 
+		// end event
+		end field
+
+        field update
+		event before
+		 set date=#date
+		 set cdate=#date
+		 if xdate .gt. date
+			 error "Cannot Proceed--Future Date is not allowed"
+		 else if xcstime .gt. cdate
+		     error "Cannot Proceed--Future Date is not allowed"
+		 end event
+        end field	
+		
+		field Confirm
+		 event after
+		  set temp=#sesql("update cacusinfo set xstatus='Confirmed' where zid='"+#id+"' and xcus='"+xcus+"' and xrow = '"+xrow+"'")
+			action show
+		 
+		 end event
+		end field
+       
+        field Back
+            embed onclick="clicked(this)" 
+        end field
+		
+	
+       
+        embed onsubmit="submitit(this)"
+
+     end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var but
+        var result
+
+        function clicked(b){
+          but = b.value
+        }
+        function submitit(form){
+          result = true
+          if (but == "Back"){
+            form.screen.value = "cacus"
+            form.searchbutton.value = "Find xcus=?"
+          }
+          return result
+        }
+        </script>
+     end jscript
+
+end screen

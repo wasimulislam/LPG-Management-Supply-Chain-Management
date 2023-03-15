@@ -1,0 +1,577 @@
+screen opdoheaderacar
+
+     sidebar list one,dolist, arinf//,gdolist
+     sections form one, jscript myscript ,list sysvoucher//,list syscogsvoucher
+
+
+   list sysvoucher
+		caption "Generated GL Voucher For Invoice:"+xdornum+" : "+xvoucher
+		table acheader
+		order xvoucher desc
+		select "left(xvoucher,4) in ('JV--') and (xvoucher='"+xvoucher+"' or xvoucher='"+xcogsvoucher+"' or xvoucher='"+xdepositvoucher+"')"  // and xpreparer='system.zab'
+		//select "xstatusjv in ('Posted') and left(xvoucher,4) in ('JV--') and isnull(xlcno,'')='' and xvoucher='"+xvoucher+"'"  // and xpreparer='system.zab'
+		rows 200
+		//objects  xvoucher attrib(link "login?screen=acheaderup&command=Show&xvoucher=?"),~
+		objects  xvoucher attrib(link "login?screen=acheader&command=Show&xvoucher=?"),~
+				 xdate,xpreparer,desc equals((select xname from pdmst where zid=acheader.zid and xstaff=acheader.xpreparer)),xlong
+
+   headers "Voucher No","Date","Preparer","Name","Remarks"
+  end list
+
+   list syscogsvoucherww
+		caption "Generated COGS Voucher For Invoice:"+xdornum+" : "+xcogsvoucher
+		table acheader
+		order xvoucher desc
+		select "left(xvoucher,4) in ('JV--') and xvoucher='"+xcogsvoucher+"'"  // and xpreparer='system.zab'
+		rows 200
+		objects  xvoucher attrib(link "login?screen=acheader&command=Show&xvoucher=?"),~
+				 xdate,xpreparer,desc equals((select xname from pdmst where zid=acheader.zid and xstaff=acheader.xpreparer))
+
+   headers "Voucher No","Date","Preparer","Name"
+  end list
+  
+     list arinf
+        caption "OP To AR Interface"
+        table optoari
+        order xtype,xgcus,xgitem
+		select "xgcus='"+xgc+"' and xgitem='"+xgi+"' and xtype='Sales'"
+		//maxwidth 530
+        rows 50
+		dtlengthmenu [100, -1], [100, "All"]
+        objects  xtype attrib(link "login?screen=optoari&command=Show&xtype=?&xgcus=?&xgitem=?&xstype=?"),xgcus,xgitem,xstype, ~
+                 //xaccdr,desc equals((select xdesc from acmst where zid=optoari.zid and xacc=optoari.xaccdr)),~
+				 xacccr,desc equals((select xdesc from acmst where zid=optoari.zid and xacc=optoari.xacccr)),~
+				 xaccdr2,desc equals((select xdesc from acmst where zid=optoari.zid and xacc=optoari.xaccdr2))
+				 
+		header "Sales Type","Customer Group","Item Group","Sales Type","Revenue / Sales Account Code","Description","Sales Discount Account","Description"
+     end list	 
+	 
+	 
+	 	
+	 list gdolist
+        caption "Pending Invoice List for Transfer To GL"
+        table opdoheader
+        order xdornum desc
+		select "left(xdornum,2)='DO' and xstatusord='Confirmed' and xstatusar='Confirmed' and xstatusjv='Open' and xstatus='Approved' "
+		rows 50
+        objects xdornum attrib(link "login?screen=opdoheaderacar&command=Show&xdornum=?"),~
+                 xdate,xwh,xtornum
+				 
+        headers "DO No","Date","Store ID","SO No."
+     end list
+	 
+	  list dolist
+        caption "Pending Invoice List for Transfer To AR"
+        table opdoheader
+        order xdornum desc
+		select "left(xdornum,2)='DO' and xstatusord='Confirmed' and xstatusar='Open' and xstatus='Approved' "
+		rows 50
+        objects xdornum attrib(link "login?screen=opdoheaderacar&command=Show&xdornum=?"),~
+                 xdate,xwh,xtornum
+				 
+        headers "DO No","Date","Store ID","SO No."
+     end list
+
+     form one
+     
+      caption "INVOICE HEADER(AR COGS & GL Transfer)"
+      table opdoheader
+      primarykey xdornum
+      order xdornum desc
+      select "left(xdornum,2)='DO'"
+      return "login"
+      layout 3
+      pstyle 3
+      objects ~//Top,Previous,Next,Bottom,
+             Show,Clear,~//,Update,Delete,~//Add,
+                Transfer_To_GL,"<p>",~//Details,,Top,Previous,Next,Bottom,,
+              	xdornum,xdate display(const),xdatedel display(const),xcus display(const),xorg display(const),xpaymentterm display(const),~
+				xdiscf display(hide),xwh display(const),xwhdesc display(const),xsubcat display(const),xpaymenttype display(const),xdistrictop display(const),xthanaop display(const),~
+              	xdeltime display(hide),xsp display(hide),~//,xname display(hide)
+              	,xarea display(const),xsm display(hide),asmname display(const),xterritory display(const),xdivisionop display(const),xrsm display(hide),dsmname display(const),xtso display(hide),xroute display(hide),~
+				xtsoname display(const),~
+				xpornum display(hide),xdatepo display(hide),xcrnnum display(hide),~
+				xexpamt display(hide),xnetamt display(hide),xexptotal display(hide),~
+				xdatedue display(hide),xcrlimit display(const),~
+              	xpp display(hide),xalias display(const),xaitamt display(hide),~   //xdum1,~xsumnum display(const),
+				xprime display(hide),xamount display(hide),xavlperc display(hide),xvatrate display(hide),~
+					
+				xdatecom display(hide),xdisc display(hide),xait display(hide),xproject display(hide),~
+				xyear display(hide),xper display(hide),xtype display(hide),xtotamt display(hide),~
+				xvatamt display(hide),xdiscamt display(hide),xtornum display(const),xstatusord display(const),xstatus display(const),~ 
+				xvoucher display(const),xdepositvoucher,xcogsvoucher,xstatusar display(const),xstatusjv display(hide),xref display(const)
+				//xnetamt,~//xtotamt display(hide),~ 
+		
+
+	  
+      field xdistrictop
+	  pick list xcodesdistrict
+      //display combo
+	  end field 
+		  
+      field xthanaop
+	  // pick "select isnull(xcode,'') from xcodes wherextype='OP Thana' and xtypeobj='Thana' and zactive='1'"
+     // display combo
+	  end field 
+			  
+      field xref
+	  column 3
+	  // pick "select isnull(xcode,'') from xcodes wherextype='OP Thana' and xtypeobj='Thana' and zactive='1'"
+     // display combo
+	  end field 
+		  
+ 
+	  
+      field xsubcat
+	  pick "select xcode from xcodes where xtype='Sub Category'"
+	  caption Catagory		
+	  end field 
+	 
+	  
+      field xstatusar
+	  caption AR Status		
+	  end field 
+	 
+	  
+      field xvoucher
+	  caption GL Voucher No
+	  end field 
+	  
+      field xcogsvoucher
+	  caption COGS Voucher No
+        attrib local
+        display const
+        event after
+          set xcogsvoucher=#sesql("select xvoucher from imtrn where xdocnum='"+xdornum+"' and zid='"+#id+"' ")
+        end event
+	  end field 
+		  
+      field xfield
+	  pick "select xcode from xcodes where xtype='Fields'"
+	  caption Fields		
+	  end field 
+	  
+      field xarea
+	 
+	  caption Area	
+        event after
+          set xarea=#sesql("select xareaop from xcodes where xtype like 'OP Territory' and xcode='"+xterritory+"' and zid='"+#id+"' ")
+        end event
+	  
+	  end field 
+	  
+      field xdivisionop
+	 
+	  caption Division	
+        event after
+          set xdivisionop=#sesql("select xdivisionop from xcodes where xtype like 'OP Territory' and xcode='"+xterritory+"' and zid='"+#id+"' ")
+        end event
+	  
+	  end field 
+
+		field xtornum 
+        caption Sales Order Number
+		end field
+
+		field xtso 
+        caption TSO ID
+		end field
+		
+		field xtsoname
+        attrib local
+        display const
+        caption <font style="color:orange;font-weight:bolder">Territory Sales Officer Name
+        event after
+          set xtsoname=cappo.xname("xsp='"+xtso+"'")+" : "+xtso
+        end event
+      end field
+		
+		field asmname
+        attrib local
+        display const
+        caption ASM Name
+        event after
+		  //set xsm=opdoheader.xsm("xdornum='"+xdornum+"')
+          set asmname=cappo.xname("xsp='"+xsm+"'")+" : "+xsm
+        end event
+      end field
+
+		
+		field dsmname
+        attrib local
+        display const
+        caption Divisional Sales Manager Name
+        event after
+		 // set xrsm=opdoheader.xrsm("xdornum='"+xdornum+"')
+          set dsmname=carsm.xname("xrsm='"+xrsm+"'")+" : "+xrsm
+        end event
+      end field
+
+
+
+
+	field xcrnnum
+		caption Exp. Adjustment No
+		pick list opdocrnexp
+		attib readonly
+	end field
+	
+	field xvatrate
+	event before
+	set xvatrate = #sesql("select isnull((select isnull(xvatrate,0) from opdef where zid='"+#id+"'),0)")
+	//set xvatrate = #sql("select isnull(xvatrate,0) from opdef")
+	end event
+	end field
+
+
+	field xcrlimit
+        attrib local
+        display const
+        caption Credit Available
+        event after
+
+        	if xpaymentterm .eq. "Credit"
+          		set xcrlimit = cacreditview.xbalance("xcus='"+xcus+"'")
+          	else 
+          		set xcrlimit = 0
+          	end if
+
+        end event
+      end field
+
+	field xexpamt
+              display const
+        caption Exp Adjustment Amt
+        
+      end field
+
+	field xsp
+             // display const
+        caption SRO ID
+      end field
+	  
+	field xstatusjv
+        caption Voucher Status
+      end field	  
+	  
+	field xpaymenttype
+        caption <font style="color:red;">Invoice Type
+		pick "Cash,Credit"
+		default "Credit"
+      end field	 
+
+      field xwh
+		caption Warehouse / Store
+        default ""
+      end field
+
+       field xwhdesc
+        attrib local
+        caption Warehouse / Store Name
+        display const
+        event after
+          set xwhdesc=xcodes.xlong("xtype='Branch' and xcode='"+xwh+"' and zactive=1")
+        end event
+       end field
+	  
+	field xexptotal
+        attrib local
+        display const
+        caption Net Amt After Adjustment
+        event after
+          		set xexptotal = xtotamt+xvatamt-xdiscamt-xexpamt //opcrnchheader.xtotamt("xcrnnum='"+xcrnnum+"'")
+          		//	if xnetamt <= 0
+          		//		set xnetamt = 0
+			 end if
+            action show
+      end event
+
+  end field
+
+
+field xpornum
+	caption Order No
+end field
+
+field xdatepo
+	caption Order Date
+	default "2079-01-01"
+end field
+
+field xdisc
+	caption Additional Discount
+end field
+
+field xdate
+	caption Invoice Date
+end field
+
+field xdeltime
+	caption Delivary Shift
+	default "Any Time"
+end field
+
+field xdornum
+	pick list xdornum
+end field
+field xitem
+	pick list xitemnpl
+end field
+
+    field xdatedue
+		default "2079-01-01"
+	end field
+
+    field xdum
+        attrib local
+        caption
+        display const
+    end field
+
+
+    field xdum
+      attrib local
+      display const
+      caption
+    end field
+
+      field xdum1
+        attrib local
+        display const
+        caption
+      end field
+
+      field xorg
+        attrib local
+        display const
+        caption Customer Name
+        event after
+          set xorg=cacus.xorg("xcus='"+xcus+"'")
+//          set xorg=<font size=+2 color=red>cacus.xorg("xcus='"+xcus+"'")</font>
+        end event
+      end field
+
+      field xname
+        attrib local
+        display const
+        caption SRO Name
+        event after
+          set xname=cappo.xname("xsp='"+xsp+"'")
+        end event
+      end field
+
+      field xalias
+        attrib local
+        display hide
+        caption Name Of Delivery Man
+        event after
+          set xalias=cappo.xname("xsp='"+xpp+"'")
+        end event
+      end field
+
+      field xamount
+        caption Advance
+      end field
+
+      field xdatecom
+        caption Ledger Date
+      end field
+
+      field xpaymentterm
+        display const
+      end field
+
+
+      field xnote
+        width 40
+        height 3
+      end field
+	  
+	  field xstatus
+	  caption Approval Status
+	  end field 
+	  
+	  
+
+      field xcus
+         event after
+		   class careports(getReport{opbillL;2;in,st;zid,inv;xdornum;Print Invoice})
+		   // class careports(getReport{opchallanL;2;in,st;zid,inv;xdornum;Print Challan})
+		   class careports(getReport{mushak-6.3;2;in,st;zid,dornum;xdornum;Print Mushak-6.3})
+		   
+		 	set cus=opdoheader.xcus("xdornum='"+xdornum+"'")
+			set xgc=cacus.xgcus("xcus='"+cus+"'")
+			set subct=opdoheader.xsubcat("xdornum='"+xdornum+"'")
+			set xgi=caitem.xgitem("xsubcat='"+subct+"'")
+		    set globals(xgc)=xgc
+		    set globals(xgi)=xgi
+		 
+			double qty = #sql("select sum(xqtyord) from opdodetail where xdornum='"+xdornum+"'")
+            
+            set globals(xdornum)=xdornum
+            set globals(xtornum)=xtornum	
+            set globals(xcogsvoucher)=xcogsvoucher	
+            set globals(xvoucher)=xvoucher			
+            set globals(xcus)=xcus
+			 set globals(xwh)=xwh
+     	      if xstatusord .eq. "Confirmed" .and. xstatusar .eq. "Confirmed"
+		         	set #field(add.attrib)="disabled"
+         			set #field(update.attrib)="disabled"
+         			set #field(delete.attrib)="disabled"
+         			set #field(Confirm.attrib)="disabled"
+       	      end if
+			  if qty > 0
+			  set #field(xcus.display)="constant"
+			  set #field(xwh.display)="constant"
+			  end if
+     	      if xsumnum .ne. ""
+		         	set #field(add.attrib)="disabled"
+         			set #field(update.attrib)="disabled"
+         			set #field(delete.attrib)="disabled"
+         			set #field(Confirm.attrib)="disabled"
+       	      end if
+			  if xstatus .ne. "Approved" .and. status .ne. "Approved"
+         			set #field(Confirm.attrib)="disabled"
+         			//set #field(Send_for_Approver.attrib)="disabled"
+       	      end if
+			  //if  xstatusar .ne. "Open"
+         			
+         		//	set #field(Transfer_To_GL.attrib)="disabled"
+       	      //end if
+			  
+			  
+			  
+			  if xstatus .eq. "Approved" .or. xstatus .eq. "Rejected"
+         			set #field(Send_for_Approver.attrib)="disabled"
+       	      end if
+          end event
+        end field
+		
+		  field Transfer_To_GL
+		    event before
+			set cus=opdoheader.xcus("xdornum='"+xdornum+"'")
+			set cusg=cacus.xgcus("xcus='"+cus+"'")
+			set cgacc=xcodes.xacc("xtype='Customer Group' and xcode='"+cusg+"'")
+			set cgaccvat=xcodes.xaccvat("xtype='Customer Group' and xcode='"+cusg+"'")
+			set subct=opdoheader.xsubcat("xdornum='"+xdornum+"'")
+			set itemgroup=caitem.xgitem("xsubcat='"+subct+"'")
+			set itemgaccroup=caitem.xcatitemacc("xsubcat='"+subct+"'")
+			set accig=xcodes.xacc("xtype='Item Group' and xcode='"+itemgroup+"'")
+			set vatig=xcodes.xaccvat("xtype='Item Group' and xcode='"+itemgroup+"'")
+			// set accari=optoari.xacccr("xgitem='"+itemgroup+"' and xgcus='"+cusg+"'")
+			// set discari=optoari.xaccdr2("xgitem='"+itemgroup+"' and xgcus='"+cusg+"'")
+			set itemcatacc=#sesql("select top 1 xitem from opdodetail where zid = '"+#id+"' and xdornum='"+xdornum+"' and xitem in (select xitem from caitem where isnull(xcatitemacc,'')='' )")
+			set accari=#sesql("select isnull((select top 1 isnull(xacccr,'') from optoari where xgcus='"+cusg+"' and xstype='"+itemgaccroup+"' and xgitem='"+itemgroup+"' and xtype='Sales' and isnull(xacccr,'')=''),'ok')")
+			set discari=#sesql("select isnull((select top 1 isnull(xaccdr2,'')  from optoari where xgcus='"+cusg+"' and xstype='"+itemgaccroup+"' and xgitem='"+itemgroup+"' and xtype='Sales' and isnull(xaccdr2,'')=''),'ok')")
+
+			
+			if opdoheader.xstatusord("xdornum='"+xdornum+"'") .ne. "Confirmed"
+				error "Cannot Proceed-- Invoice Not Confirmed!"
+			//else if opdoheader.xstatusar("xdornum='"+xdornum+"'") .eq. "Confirmed" .and. imtrn.xstatusjv("xdocnum='"+xdornum+"'") .eq. "Confirmed"
+			//	error "Cannot Proceed-- Already Confirmed!"
+			//else if imtrn.xstatusjv("xdocnum='"+xdornum+"'") .eq. "Confirmed"
+			//	error "Cannot Proceed-- COGS Already Transfered!"
+			else if itemcatacc .ne. ""
+				error "Cannot Proceed-- Account Not Found in Item Category !"	
+			else if cgacc .eq. ""
+				error "Cannot Proceed-- Receivable Account Not Found!"	
+			else if cgaccvat .eq. ""
+				error "Cannot Proceed-- Vat Account(DR) Not Found in Customer Group !"	
+			else if accig .eq. ""
+				error "Cannot Proceed-- Account Not Found in Item Group!"	
+			else if vatig .eq. ""
+				error "Cannot Proceed-- Vat Account(CR) Not Found in Item Group !"	
+			else if accari .ne. "ok"
+				error "Cannot Proceed-- Sales Account Not Found in AR Interface !"	
+			else if discari .ne. "ok"
+				error "Cannot Proceed-- Sales Discount Account Not Found in AR Interface !"	
+			end if
+			
+          	end event
+					  
+		  
+	  	event after
+		
+		  if opdoheader.xstatusjv("xdornum='"+xdornum+"'") .ne. "Confirmed"
+				set temp = #spsql(zabsp_OP_transferOPtoGL,#id,#user,xdornum,"opdoheader")
+		  end if
+		  
+		  if opdoheader.xstatusar("xdornum='"+xdornum+"'") .ne. "Confirmed"
+		        set temp = #spsql(zabsp_OP_summaryProcessAR,#id,#user,xwh,xdornum,xsumnum,"single")
+		  end if
+		  
+
+		  
+				set temp = #spsql(zabsp_PROC_Issue_Pricing,#id,#user,xdornum,xwh)
+ 
+		  if imtrn.xstatusjv("xdocnum='"+xdornum+"'") .ne. "Confirmed"
+				set temp = #spsql(zabsp_OP_transferIMtoGL,#id,#user,xdornum)
+		  end if
+				
+               action show
+			  
+         	 end event
+        end field
+		
+		
+ 
+
+        embed onsubmit="return submitit(this)"
+        //embed onsubmit="submitit(this)"
+
+        field Transfer_To_GL
+          embed onclick="clicked(this)"
+        end field
+
+        field New
+          embed onclick="clicked(this)"
+        end field
+
+
+     end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+	history.pushState(null, null, document.URL);
+	window.addEventListener('popstate', function () {
+		history.pushState(null, null, document.URL);
+	});		
+		
+        var button
+        var result
+        function clicked(b){
+          button=b.value
+        }
+        function submitit(form){
+          result = true
+          if (button=="Details"){
+            form.screen.value = "opdodetail"
+            form.searchbutton.value = "Top"
+          }
+          if (button=="Details_Package"){
+            form.screen.value = "opdodetailpackage"
+            form.searchbutton.value = "Top"
+          }
+		  
+          if (button=="New Customer"){
+            form.screen.value = "cacusnew"
+            form.searchbutton.value = "Top"
+          }
+          return result
+        }
+
+        function pickDetail(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xinvnum.value=link.text;
+            document.one.xbalance.value=primebal.text;
+            document.one.xdate.value=date.text;
+          }else{
+              document.one.xamount.value=link.innerText
+          }
+          return false
+        }
+        </script>
+     end jscript
+
+end screen

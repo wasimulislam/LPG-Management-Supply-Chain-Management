@@ -1,0 +1,302 @@
+screen ctsdetail 
+
+
+
+  sidebar list dt
+  sections form one  , jscript myscript //,list summaryOP,list opsalesumlist,three1
+  
+  //  pstyle datatable
+
+        //  text three
+        // "<p><b>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</b><br>"
+        // "<object border=0 data="+"photo/"+xid+".gif type=""text/plain"" height=50% width=100% ></object>"
+     // end text
+
+
+
+
+
+  
+    list dt
+    caption "<< CYLINDER BARCODE Movement Details >>"
+    table ctsdetailtemp
+     primary key zid,xrow //,xdornum,xcus,xplantno,xitem,productCode1
+     order xrow
+	// fixed order_detail_id
+   // select " order_detail_id  = '"+order_detail_id+"' OR '"+order_detail_id+"' >=0 "
+    dtinfo false
+    dtlengthmenu [500, -1], [500, "All"]
+    rows 500
+	maxwidth 700
+     objects   xrow attrib(link "login?screen=ctsdetail&command=Show&xrow=?"),product_code,barcode,xtype,operation_type,deviceCode,order_detail_id
+
+
+    headers "Row","Product Code" ,"Barcode" ,"Type","Operation Description","Device_Code","Order Detail ID" //,"","Opration Status"
+ 
+  end list
+
+
+  form one
+    caption "CYLINDER BARCODE Movement For Order: "+xdornum
+    table ctsdetailtemp
+     primary key xrow //,xdornum,xcus,xplantno,xitem,productCode1,xdocnum
+     order xrow
+
+    return "login"
+
+        layout 2
+        pstyle 3
+
+    objects Show,Clear,Next,Previous,Return,Delete,Update_QR_Code,~ //,Add,Update,Delete,Confirm_Shrinkage,Confirm_Damage,Update,Show *next,Top,Previous,Next,Bottom,Day_End_Summary
+     xrow,xtype,product_code,barcode,operation_type,deviceCode
+
+        
+
+
+        field order_detail_id
+          caption Detail_ID
+        width 20 
+          event after
+          
+          end event
+        end field
+
+
+        field deviceCode
+          caption Device Code
+        width 20 
+          event after
+          
+          end event
+        end field
+
+        field barcode
+          caption BarCode No
+        width 20 
+          event after
+          
+          end event
+        end field
+
+
+        field product_code
+          caption Product Code
+        width 20 
+          event after
+          
+          end event
+        end field
+
+
+        field xitem
+          caption Operation Description
+        display combo
+		pick "select xitem from ctsheader"
+          event after
+          
+          end event
+        end field
+
+
+
+        field xtype
+          caption Operation Description
+        display combo
+		pick "Loading,Unloading,"
+		default "Unloading"
+          event after
+
+          end event
+        end field
+
+
+        field Update_QR_Code
+          event after
+          set temp=#sql("update ctsdetail set xbodycode='"+xbodycode+"' where xdornum='"+xdornum+"' and productCode1='"+productCode1+"' ")
+          end event
+        end field
+
+        field xbodycode
+          caption QR Code
+        
+          event after
+          
+          end event
+        end field
+
+        field xcusold
+          caption Dealer Code
+        
+          event after
+          
+          end event
+        end field
+
+
+        field xplantno
+          caption Plant ID
+        
+          event after
+          
+          end event
+        end field
+
+        field xitem
+          caption Product Code 1
+        
+          event after
+          
+          end event
+        end field
+
+
+        field xrow
+          display const
+        end field
+
+
+        field xitemdesc2
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc2=caitem.xdesc("xitem='"+xitem2+"'")
+          end event
+        end field
+
+
+        field xitemdesc3
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc3=caitem.xdesc("xitem='"+xitem3+"'")
+          end event
+        end field
+
+
+        field xitemdesc4
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc4=caitem.xdesc("xitem='"+xitem4+"'")
+          end event
+        end field
+
+
+        field xitemdesc5
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc5=caitem.xdesc("xitem='"+xitem5+"'")
+          end event
+        end field
+
+
+        field xitemdesc6
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc6=caitem.xdesc("xitem='"+xitem6+"'")
+          end event
+        end field
+
+
+
+        field xitemdesc
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc=caitem.xdesc("xitem='"+xitem+"'")
+          end event
+        end field
+
+
+  field xdum4
+    attrib local
+    display const
+    caption <font color=Blue size=+2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Day End Adjustment >>  </font>
+
+    //column 
+  end field
+
+    field Search
+      
+    event before
+
+     set docnum=xdocnum
+
+     set dealer=xcusold
+
+    end event
+    event after 
+
+        // set globals(docnum)=docnum
+        // set globals(dealer)=dealer
+		
+    end event
+
+    end field
+	
+    field xdocnum
+      caption SO NO:
+	  pick list xsocts
+    event after 
+       
+    end event
+
+    end field 
+
+
+
+
+
+    embed onsubmit="return submitit(this)"
+
+    field Return
+      embed onclick="clicked(this)"
+    end field
+
+
+  end form
+
+  jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = b.value
+        }
+
+$(document).ready(function() {
+
+});
+
+window.onload = function() {
+
+
+}
+
+    function submitit(form){
+
+            if (but=="Return"){
+            form.screen.value = "ctsheader"
+          form.searchbutton.value = "Find order_detail_id=?" //"Top"
+		  
+          }
+
+}        
+
+        </script>
+     end jscript
+
+end screen
+
+
+
+

@@ -1,0 +1,483 @@
+screen opdcheaderadmin
+     	sidebar list one1,list one2
+		sections form one, jscript myscript
+		
+	list one1
+      caption "Detail List For DC : "+xdocnum
+        table opdcdetail
+        order xdocnum,xdocrow
+        fixed xdocnum
+        rows 20
+        objects xdocrow,xitem,~
+				desc equals((select xdesc from caitem where zid=opdcdetail.zid and xitem=opdcdetail.xitem)),~
+                xref,xqtydoc,xunit //(xlineamt+xvatamt-xdiscdetamt),xdiscdet,xdiscdetamt
+       header "Sl. No","Product <br> Code","Name Of <br>The Product","Product Description","Qty","Unit"
+		totals "","Totals","","","",""
+     end list
+	 
+	 list one2
+      caption "SO List Of This DC : "+xdocnum
+        table imtorheader
+        order xtornum
+		select "xstatustor in ('Approved','Partial DC Created') and xtornum='"+xtornum+"'"
+        rows 20
+        objects xtornum,xdate,xstatustor
+        header "SO No","Date","Status"
+     end list
+	 
+    
+
+     form one
+		caption "<center><b>" Delivery Challan Header (Admin)"</b>"
+        table opdcheader
+        primarykey xdocnum
+        order xdocnum
+		select "left(xdocnum,2) = 'DC'"
+		return "login"
+        pstyle 3
+        layout 3
+        objects Update,Delete,*next,Show,Clear,~//Add,
+              *next,Top,Previous,Next,Bottom,"<p>",~  
+				xdocnum,xdate,xdatecom,xcus display(const),xcusname,xsubcat display(const),xref display(const),xtruckno display(const),xtornum display(const),xdornum display(hide),~
+				xordernum display(hide),xfwh display(const),xtype display(hide),xstype display(hide),~
+				xstatusdor display(hide),xprime display(hide),xterritory display(const),xtso display(const),~
+				xtsoname,xsp display(hide),xareaop display(hide),xdivisionop display(hide),xsm display(hide),asmname,xrsm display(hide),~
+				xthanaop display(const),xdistrictop display(const),xstatusdoc display(const),xvatamt display(hide),xstatus,xidsup display(hide),appname,xnote display(const),~
+				,,,,~
+				signatorysec display(const),,,~
+				xpreparer display(hide),preparer display(const),~	
+				xsignatory1 display(hide),signatory1  display(const),~
+				xsignatory2 display(hide),signatory2 display(const),~
+				xsignatory3 display(hide),signatory3 display(const),~
+				xsignatory4 display(hide),signatory4 display(const),~
+				xsignatory5 display(hide),signatory5 display(const),~
+				signreject display(const),xnote1 display(const),dum,~
+				xsignreject display(hide)
+		
+/////////////////////////////////////////////		
+		field signatorysec
+		attrib local
+		caption <span class=sheader style="	BACKGROUND:#0480ba;	PADDING-BOTTOM: 5px;PADDING-LEFT: 10px;color:White; PADDING-RIGHT: 150px; PADDING-TOP: 2px;font-weight:bolder;font-weight: 900;">Signatories</span>
+		//caption <span style="font-weight:bolder;color:Blue;font-weight: 900;" >Signatories :</span>
+		
+		display const
+		//column 2
+		end field	
+
+		field dum
+		attrib local
+		display const
+		caption
+		end field 
+	
+		field xnote1
+		caption Reject Note:
+		display const
+		end field 
+		
+	field xstatus
+	  caption Approval Status
+	  display combo
+	  pick "Open,Recommended,Approved,Rejected"
+	  end field 
+	
+	 field appname
+        attrib local
+        caption Approved Person
+        display const
+        event after
+		set xidsup=opdcheader.xsuperior2("xdocnum = '"+xdocnum+"'")
+          set appname=pdmst.xname("xposition='"+xidsup+"'")
+        end event
+       end field
+	   
+		field preparer
+          caption Preparer
+		  attrib local
+		  event after
+		  if xpreparer .ne. ""
+		  set preparer=pdmst.xname("xstaff='"+xpreparer+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xpreparer+"'")+", "+pdmst.xdeptname("xstaff='"+xpreparer+"'")+"</font>"
+		  end if
+		 
+		  end event
+        end field
+
+		
+		field signatory1
+          caption pick,"select xsignatory1 from pdsignatoryrpt where xtypetrn='DC Approval'"
+		  attrib local
+		  event after
+		  if xsignatory1 .ne. ""
+		  set signatory1=pdmst.xname("xstaff='"+xsignatory1+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory1+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory1+"'")+"</font>"
+		  end if
+		  //set signatory1=pdmst.xname("xstaff='"+xsignatory1+"'")
+		  end event
+        end field
+		
+		field signatory2
+          caption pick,"select xsignatory2 from pdsignatoryrpt where xtypetrn='DC Approval'"
+		  attrib local
+		  event after
+		  set signatory2=pdmst.xname("xstaff='"+xsignatory2+"'")
+		  end event
+        end field
+		
+		
+		field signatory3
+          caption pick,"select xsignatory3 from pdsignatoryrpt where xtypetrn='DC Approval'"
+		  attrib local
+		  event after
+		  set signatory3=pdmst.xname("xstaff='"+xsignatory3+"'")
+		  end event
+        end field
+		
+		field signatory4
+          caption pick,"select xsignatory4 from pdsignatoryrpt where xtypetrn='DC Approval'"
+		  attrib local
+		  event after
+		  set signatory4=pdmst.xname("xstaff='"+xsignatory4+"'")
+		  end event
+        end field
+		
+		field signatory5
+          caption pick,"select xsignatory5 from pdsignatoryrpt where xtypetrn='DC Approval'"
+		  attrib local
+		  event after
+		  set signatory5=pdmst.xname("xstaff='"+xsignatory5+"'")
+		  end event
+        end field
+		
+		field signreject
+          caption Reject Signatory
+		  attrib local
+		  event after
+		  set signreject=pdmst.xname("xstaff='"+xsignreject+"'")
+		  end event
+        end field			
+			
+/////////////////////////////////////////////			
+
+
+	field asmname
+        attrib local
+        display const
+        caption Area Sales Manager Name
+        event after
+		  //set xsm=opdoheader.xsm("xdornum='"+xdornum+"')
+          set asmname=cappo.xname("xsp='"+xsm+"'")+" : "+xsm
+        end event
+      end field
+			
+			
+		field xtso 
+        caption TSO ID
+		end field
+		
+		field xtsoname
+        attrib local
+        display const
+        caption TSO Name
+        event after
+          set xtsoname=cappo.xname("xsp='"+xtso+"'")
+        end event
+      end field			
+
+	field link
+		caption <br><FONT SIZE=2 COLOR=blue>Final Process</font>
+      	display const
+      	event after
+			//set link = "Final process (Link)"
+				set link = xdornum
+      	end event
+			embed href="#" onclick="proc(this)"
+        end field
+
+	field xcus
+		
+	end field
+
+	field xdatedel
+		caption Est. Delivery Date
+	end field
+	
+	field xdeltime
+	caption Delivary Shift
+	default "Any Time"
+	end field
+
+
+	
+	field xstatustor
+		caption SO Status
+	end field
+	
+	field xtruckno
+		caption Vehicle ( Truck/Tanker)
+	end field
+
+	field xstatusrec
+		display const
+		caption Receive Status
+	end field
+
+	field xstatusdo
+		caption DO Status
+	end field
+	
+      field xcusname
+        attrib local
+        display const
+        caption Customer Name
+        event after
+          set xcusname=cacus.xorg("xcus='"+xcus+"'")
+        end event
+      end field 
+	  
+	  field xname
+        // attrib local
+        display const
+        // caption Customer Name
+        event after
+          set xname=cappo.xname("xsp='"+xsp+"'")
+        end event
+      end field 
+
+
+	field xfwh
+		caption From Store
+		pick  list xfwhop
+	  end field 
+	  
+
+
+
+	field xfbrname
+        attrib local
+        caption Store Name
+        display const
+        event after
+          set xfbrname=xcodes.xlong("xtype='Branch' and xcode='"+xfwh+"'")
+        end event
+       end field
+	  
+      field xsubcat
+	  pick "select xcode from xcodes where xtype='Sub Category'"
+	  caption Catagory		
+	  end field 
+	  
+      
+	
+	field xdum
+		attrib local
+		caption Receive Date
+		display const
+	end field
+
+	field show
+		event after
+			set docstatus=#sql("select xstatusdoc from opdcheader where xdocnum='"+xdocnum+"'")
+			set message="DC Already Confirmed,Please Update Inventory Transaction First!"
+			if docstatus .eq. "Confirmed"
+				print message
+			end if
+		end event
+	end field
+
+	field xstatusdoc
+		caption  Delivery Challan Status 
+		display combo
+		pick "Open,Confirmed"
+	end field
+
+        field xdocnum
+		 pick list xdocnum
+			caption Delivery Challan
+			width 20
+          event after
+		   class careports(getReport{opchallanL;2;in,st;zid,inv;xdocnum;Print Challan})
+		   class careports(getReport{opgatepassL;2;in,st;zid,inv;xdocnum;Print Gate Pass})
+		   
+
+			double valdetail= #sesql("select isnull((select sum(xdocrow) from imtordetail where xdocnum = '"+xdocnum+"'),0)")
+			double lineamt=#sesql("select((select SUM(isnull(xdocrow,0)) from imtordetail where xdocnum='"+xdocnum+"'),0)")
+			
+			
+			if valdetail > 0
+			set #field(xsubcat.display)="const"
+			
+			end if
+
+			if valdetail == 0
+				set #field(Send.attrib)="disabled"
+			end if 
+            set globals(xdocnum)=xdocnum
+            
+            if xstatus .eq. "" .or. xstatus .eq. "Open"
+				set #field(Confirm.attrib)="disabled"
+            end if
+            if xstatus .eq. "Applied"
+				set #field(Confirm.attrib)="disabled"
+				set #field(Send_for_Approval.attrib)="disabled"
+            end if
+            if xstatus .eq. "Approved"				
+				set #field(Send_for_Approval.attrib)="disabled"
+            end if
+            if xdocnum .eq. ""
+              set #field(delete.attrib)="disabled"
+              set #field(update.attrib)="disabled"
+              set #field(confirm.attrib)="disabled"
+            end if
+            if xstatus .eq. "Rejected" .or. xstatus .eq. "Recommended"
+              set #field(add.attrib)="disabled"
+              set #field(delete.attrib)="disabled"
+            end if
+			if xstatus .eq. "Closed"
+				set #field(add.attrib)="disabled"
+				set #field(update.attrib)="disabled"
+				set #field(delete.attrib)="disabled"				
+			end if
+			
+			if xstatusdoc .eq. "Confirmed"
+				set #field(add.attrib)="disabled"			
+				set #field(Send_for_Approval.attrib)="disabled"				
+			end if
+			
+			if xdocnum .eq. ""
+					set #field(Send_Mail.attrib)="disabled" 
+			end if
+			
+			
+			
+			if opdcheader.xidsup("xdocnum='"+xdocnum+"'") .eq. ""  .or. opdcheader.zauserid("xdocnum='"+xdocnum+"'") .ne. #user
+				set #field(Send_Mail.attrib)="disabled" 
+			end if
+			
+			
+          end event
+		end field
+
+
+
+        field xdate
+          caption Delivery Challan Date
+        end field
+		
+		field xtornum
+          caption Sales Order Number
+        end field
+
+        field xdatecom
+          // display constant
+          caption Receive Date
+        end field
+
+
+        field xnote
+			caption Remarks
+          height 3
+          width 50
+          column 2
+        end field
+		
+		field xnote1
+		caption Rejected note
+			display const
+        end field
+
+
+		field Update
+		
+			 event before
+			 set docimstatus=#sesql("select top 1 xdocnum from imtrn where zid='"+#id+"' and xdocnum='"+xdocnum+"'")
+			 set date=imtorheader.xdate("xtornum='"+xtornum+"' and zid='"+#id+"'")
+			 set datecom=imtorheader.xdatecom("xtornum='"+xtornum+"' and zid='"+#id+"'")
+			 if xdate .lt. date
+			 error "Back Date than SO date does not allow!"
+			 else if xdatecom .lt. datecom
+			 error "Back Date than SO Receive date does not allow!"
+			 else if xdatecom .gt. xdate
+			 error "Receive date can't be greater than DC date!"
+			 else if docimstatus .ne. ""
+			 error "Please Update Inventory Transaction First!"
+			 end if 
+			 	// set xstatusdoc="Open"
+			 end event
+			 
+			event after
+			  // set temp=#sesql("update a set a.xareaop=b.xareaop,a.xdivisionop=b.xdivisionop,a.xstatusdoc='Open' from opdcheader a join cacus b on b.xcus=a.xcus and a.zid=b.zid where a.zid='"+#id+"' and a.xdocnum='"+xdocnum+"' ")
+			end event
+			
+		end field
+		
+		
+		field Send_Mail
+				event before
+					set idsup = opdcheader.xidsup("xdocnum='"+xdocnum+"'")
+					set email = pdmst.xemail("xposition='"+idsup+"'")
+					if email .eq. ""
+						error "Can not Proceed. No mail address found for approval superior."
+					else if idsup .eq. ""
+						error "Can not Proceed. No superior found."
+					else if opdcheader.zauserid("xdocnum='"+xdocnum+"'") .ne. #user
+						error "Can not Proceed. You are not Preparer of this transaction!"
+					end if
+				
+				end event
+
+				event after 
+					set temp = #spsql(zabsp_send_ondemand_mail,#id,#user,xdocnum)
+					print "Mail Sent to "+email
+				end event
+		end field
+
+
+        embed onsubmit="submitit(this)"
+
+        field Details
+          embed onclick="clicked(this)"
+        end field
+		
+		field Send_Mail
+          embed onclick="clicked(this)"
+        end field
+		
+		field Update
+          embed onclick="clicked(this)"
+        end field
+		
+
+     end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+		var result
+
+        function clicked(b){
+          detail="clicked"
+        }
+		
+        function submitit(form){
+          if (detail=="Details"){
+            form.screen.value = "opdcdetail"
+            form.searchbutton.value = "Find xdocnum=?"
+          }
+		   if (detail=="Send_Mail"){
+           if(confirm('Are You Confirm ?')){
+			form.searchbutton.value = "Send_Mail"
+			document.getElementById("Send_Mail").disabled = true;
+			
+			}else{
+			form.searchbutton.value = "Show"
+			}
+          }
+		  
+        }
+
+        </script>
+     end jscript
+
+
+
+end screen

@@ -1,0 +1,31 @@
+product ZAB ERP
+
+table ctsitemview 
+  caption "CTS Item"
+  columns zid,xdornum,xdocnum,xitem,pC1FilledQuantity,pC1EmptyQuantity,xqty
+  primary key zid,xdornum
+  
+  foreign key
+     zid references zbusiness.zid 
+  end foreign key
+
+  SQL Create  VIEW ctsitemview (zid,xdornum,xdocnum,xitem,pC1FilledQuantity,pC1EmptyQuantity,xqty) ~
+	              as select zid,xdornum,xdocnum,xitem,pC1FilledQuantity,pC1EmptyQuantity,pC1SystemQuantity from ctsheader ~
+				  GROUP BY zid,xdornum,xdocnum,xitem,pC1FilledQuantity,pC1EmptyQuantity,pC1SystemQuantity ~
+	              Union   ~
+	              select zid,xdornum,xdocnum,xitem2,pC2FilledQuantity,pC2EmptyQuantity,pC2SystemQuantity from ctsheader ~
+	              GROUP BY zid,xdornum,xdocnum,xitem2,pC2FilledQuantity,pC2EmptyQuantity,pC2SystemQuantity ~
+	              Union   ~
+	              select zid,xdornum,xdocnum,xitem3,pc35kg22mm_filled_quantity,pc35kg22mm_empty_quantity,pc35kg22mm_system_quantity from ctsheader ~
+	              GROUP BY zid,xdornum,xdocnum,xitem3,pc35kg22mm_filled_quantity,pc35kg22mm_empty_quantity,pc35kg22mm_system_quantity ~
+	              Union   ~
+	              select zid,xdornum,xdocnum,xitem4,pc35kg20mm_filled_quantity,pc35kg20mm_empty_quantity,pc35kg20mm_system_quantity from ctsheader ~
+	              GROUP BY zid,xdornum,xdocnum,xitem4,pc35kg20mm_filled_quantity,pc35kg20mm_empty_quantity,pc35kg20mm_system_quantity ~
+	              Union   ~
+	              select zid,xdornum,xdocnum,xitem5,pc45kg22mm_filled_quantity,pc45kg22mm_empty_quantity,pc45kg22mm_system_quantity from ctsheader ~
+	              GROUP BY zid,xdornum,xdocnum,xitem5,pc45kg22mm_filled_quantity,pc45kg22mm_empty_quantity,pc45kg22mm_system_quantity ~
+	              Union   ~
+	              select zid,xdornum,xdocnum,xitem6,pc45kg20mm_filled_quantity,pc45kg20mm_empty_quantity,pc45kg20mm_system_quantity from ctsheader ~
+	              GROUP BY zid,xdornum,xdocnum,xitem6,pc45kg20mm_filled_quantity,pc45kg20mm_empty_quantity,pc45kg20mm_system_quantity
+  
+ end table

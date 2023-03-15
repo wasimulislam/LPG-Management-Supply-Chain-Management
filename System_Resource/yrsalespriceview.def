@@ -1,0 +1,32 @@
+product ZAB ERP
+
+table yrsalespriceview 
+  caption "This Year's Monthly SALES Price Wise"
+  columns zid,xnetamt,xdornum,xdate,xstatusord
+  
+  primary key zid,xdornum
+
+  foreign key
+        zid references zbusiness.zid 
+  end foreign key
+
+	sql create view yrsalespriceview (zid,xnetamt,xdornum,xdate,xstatusord) ~
+                 as select zid,(isnull(xnetamt,0)/1000000) ,xdornum,xdate,xstatusord  from opdoheader ~
+			  where xstatusord='Confirmed' //and datepart(yyyy,xdate) =year(getdate())
+			
+	
+	
+
+				//sql create view yrsalespriceview (zid,xper,xmonth,xnetamt) ~
+				//as select (select b.zid from zbusiness b),m.xper,m.xmonth,~			
+				//(select isnull(sum(isnull(h2.xnetamt,0)/1000000),0) from opdoheader h2 ~
+				//where month(h2.xdate)=m.xper and h2.xstatusord='Confirmed' and datepart(yyyy,h2.xdate) =year(getdate())) ~
+				//from zabmonthview m ~
+				//group by m.xper,m.xmonth 
+					
+//select zid,(isnull(xnetamt,0)/1000000) ,xdornum,xdate,month(xdate),DATENAME(month, xdate),DATENAME(year,xdate),xstatusord ~
+//				  from opdoheader ~
+//				  where xstatusord='Confirmed' and datepart(yyyy,xdate) =year(getdate()) order by month(xdate)
+//			
+	end table
+	

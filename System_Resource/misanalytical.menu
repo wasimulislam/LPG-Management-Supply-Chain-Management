@@ -1,0 +1,23 @@
+//misanalytical.menu
+//-------------------------------------------------------------------
+option                           		|action
+//-------------------------------------------------------------------
+Pending Approval Notification	 		|#classPath+"/login?screen=asstnotification"	
+Requisition Status List          		|#classPath+"/login?screen=*viewcrystal reqlist-sr(6;in,st,st,st,st,st;zid,fdate,tdate,reqtype,status,project;xdate=From date=#date,xdate=To Date=#date,xtorname=Requisition Type,xreqstatus=Requisition Status,xproject=Project,xviewtype=Report View)"
+PR Status List                   		|#classPath+"/login?screen=*viewcrystal reqlist-pr(6;in,st,st,st,st,st;zid,fdate,tdate,status,staff,reptype;xdate=From date=#date,xdate=To Date=#date,xreqstatuspr=Requisition Status,xstaff=Employee ID,xreptype=Report Type,xviewtype=Report View)"
+PO/WO Status List                		|#classPath+"/login?screen=*viewcrystal polist(8;in,dt,dt,st,st,st,st,st;zid,fdate,tdate,status,spr,staff,rpttype,project;xdate=From date=#date,xdate=To Date=#date,xreqstatuspo=Requisition Status,xdegree=To Show,xstaff=Employee ID,xreptype=Report Type,xproject=Project,xviewtype=Report View)"
+Supplier-wise PO/WO Report       		|#classPath+"/login?screen=*viewcrystal pomrrsum(8;in,st,st,dt,dt,st,st,st,st;zid,wh,tornum,fdate,tdate,sup,rpt,dataview;xwh=Store,xsprnum=SPR No,xdate=From Date=#date,xdate=To Date=#date,xsup=Supplier=,xpodoctype=Document Type,xdataview=View Items,xviewtype=Report View)"
+SPR to GRN Status                		|#classPath+"/login?screen=*viewcrystal reqstatus(5;in,st,st,st,st;@zid,@user,@reqnum,@pitem,@pwh;xhide=Hide,xsprnum=SPR No,xitem=Item,xwh=Plant/ Project,xviewtype=Report View)"
+Production Analytical Report			|#classPath+"/login?screen=*viewcrystal moprddetail(11;in,st,st,st,st,st,st,st,st,st,st;@zid,@fdate,@tdate,@batch,@itemfin,@itemraw,@prcstype,@reporttype,@itemtype,@stype,@cylntype;xdate=From Date,xdate=To Date,xbatch=Batch,xitem=Finished Item,xitem=Raw Item,xbatchtype=Batch Type,xreptype=Type,xitemtype=Product Description Type,xstyperpt=Item Group,xrfacat=Cylinder Category,xviewtype=Report View)"
+//Production Analytical Report			|#classPath+"/login?screen=*viewcrystal moprddetail(8;in,st,st,st,st,st,st,st;@zid,@fdate,@tdate,@xbatch,@itemfin,@itemraw,@prcstype,@reporttype;xdate=From Date,xdate=To Date,xbatch=Batch,xitem=Finished Item,xitem=Raw Item,xbatchtype=Batch Type,xreptype=Type,xviewtype=Report View)"
+
+
+
+
+//Management Dashboard	  		 |#classPath+"/login?screen=pomgndashboard"			 |im  	 |		|inventory.png|180 //|fa-home|180
+//Supplier-wise PO Report		 |#classPath+"/login?screen=*viewcrystal pomrrsum(6;in,st,dt,dt,st,st;zid,wh,fdate,tdate,sup,rpt;xwh=Store,xdate=From Date=#date,xdate=To Date=#date,xsup=Supplier=,xpo= >,xviewtype=Report View)"
+//Supplier-wise PO/WO Report     |#classPath+"/login?screen=*viewcrystal pomrrsum(7;in,st,st,dt,dt,st,st;zid,wh,tornum,fdate,tdate,sup,rpt;xwh=Store,xsprnum=SPR No,xdate=From Date=#date,xdate=To Date=#date,xsup=Supplier=,xpodoctype=Document Type,xviewtype=Report View)"
+//Supplier-wise PO/WO Report       |#classPath+"/login?screen=*viewcrystal pomrrsum(9;in,st,st,dt,dt,st,st,st,st;zid,wh,tornum,fdate,tdate,sup,rpt,dataview,unit;xwh=Store,xsprnum=SPR No,xdate=From Date=#date,xdate=To Date=#date,xsup=Supplier=,xpodoctype=Document Type,xdataview=View Items,xunitrep=Unit,xviewtype=Report View)"
+//Loan Status List                 |#classPath+"/login?screen=*viewcrystal reqlist-loan(6;in,st,st,st,st,st;zid,fdate,tdate,status,staff,reptype;xdate=From date=#date,xdate=To Date=#date,xreqstatuspo=Requisition Status,xstaff=Employee ID,xreptype=Report Type,xviewtype=Report View)"
+//BOQ Reports  					 |#classPath+"/login?screen=*viewcrystal boqall(2;in,st;zid,code;xcodeboq=BOQ Ref No,xviewtype=Report View)"
+//BOQ Varience Reports at actual	 |#classPath+"/login?screen=*viewcrystal boqvarianceact(5;in,st,st,st,st;@zid,@fdate,@tdate,@code,@viewlevel;xdate= From Date, xdate= To date,xcodeboq=BOQ Ref No,xlevel=Show Level,xviewtype=Report View)"

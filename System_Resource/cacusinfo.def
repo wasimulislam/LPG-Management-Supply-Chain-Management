@@ -1,0 +1,15 @@
+product ZAB ERP
+
+table cacusinfo
+  caption "Customer Master Info"
+  columns ztime,zutime,zauserid,zuuserid,zid,xcus,xorg,xmadd,~
+          xemail,xphone,xsector,xcstime,xtaxyear,xshnoqty,xwhnoqty,xtruckqty,xpknoqty,xwrksqty,xdealerqty,xretailerqty,xnote,xmtsize,xcainstype,xrow,xdate,xstatus,zactive
+          
+		  
+          
+  primary key zid,xcus,xrow
+  foreign key
+        zid references zbusiness.zid
+        zid,xcus references cacus.zid,xcus
+  end foreign key
+end table

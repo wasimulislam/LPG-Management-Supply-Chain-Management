@@ -1,0 +1,15 @@
+imgrnsqc.menu
+//-------------------------------------------------------------------
+option                           |action                                        |modules|models|width
+//-------------------------------------------------------------------
+Create GRN                        |#classPath+"/login?screen=poordheaderim"
+View GRN                          |#classPath+"/login?screen=pogrnheader"
+Create SQC                        |#classPath+"/login?screen=poqualitycertifi"
+View SQC                          |#classPath+"/login?screen=poqtcheader"
+//Create GRN /QC (Direct)         |#classPath+"/login?screen=pogrndirect"
+GRN Confirm Against LC            |#classPath+"/login?screen=pogrnim"
+Goods Inspection           		  |#classPath+"/login?screen=imtorheaderinsp" 
+LPG GRN	(Local)						  |#classPath+"/login?screen=pogrndirectlpg"
+LPG GRN Approval				  |#classPath+"/login?screen=pogrnappdirectlpg"
+
+

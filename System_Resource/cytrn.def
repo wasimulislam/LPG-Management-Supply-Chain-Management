@@ -1,0 +1,15 @@
+product ZAB ERP
+
+table cytrn
+  caption "Cylinder Transaction"
+  columns ztime,zutime,zauserid,zuuserid,zid,xdocnum,xitem,xwh,~
+		  xcus,xqty,xsign,xstatus,xdornum,xnote,xparentitem,xassetitem,xfagroup,xfatype,xfacat,xdatedel,xdate,xtornum
+
+  primary key zid,xdocnum
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xitem references caitem.zid,xitem
+        zid,xparentitem references caitem.zid,xitem
+  end foreign key
+end table

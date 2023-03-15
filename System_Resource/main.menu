@@ -1,0 +1,47 @@
+//Main.menu
+//---------------------------------------------------------------------------------------
+option                  				|action                                          |modules|models|image|width
+//---------------------------------------------------------------------------------------
+Administrations         				|#classPath+"/login?menu=com"                    |ca     |     |administration.png|180 //|fa-home|180
+Financial Accounts      				|#classPath+"/login?menu=accounts"               |ac     |      |gl.png|180 //|fa-home|180
+Accounts      							|#classPath+"/login?menu=accountsg"               |ac     |      |gl.png|180 //|fa-home|180
+Management              				|#classPath+"/login?menu=management"             |ac     |      |administration.png|180 //|fa-home|180
+Dash Board              				|#classPath+"/login?menu=dashboard"              |ac     |      |administration.png|180 //|fa-home|180
+Approver Notifications  				|#classPath+"/login?screen=approvernotification" |ac     |      |notification.png|180 //|fa-home|180
+Approved/Rejected Document Query		|#classPath+"/login?screen=ponotification_status"
+User Notifications  					|#classPath+"/login?screen=usernotification" 			|ac      |      |notification.png|180 //|fa-home|180
+//Dash Board Accounts	    			|#classPath+"/login?screen=acdashboard"		 			|im  	 |		|inventory.png|180 //|fa-home|180
+//Dash Board Procurement  				|#classPath+"/login?screen=podashboard"		 			|im  	 |		|inventory.png|180 //|fa-home|180
+Commercial              				|#classPath+"/login?menu=commercial"             |o,im,so|  	|purchase.png|180
+//Production            				|#classPath+"/login?menu=mo"                     |ca     |   	|production.png|180
+Sales and Distribution      			|#classPath+"/login?menu=op"                     |ac     |      |sales.png|180
+Purchase                				|#classPath+"/login?menu=po"                     |im 	 |		|purchase.png|180 //|fa-home|180
+Inventory               				|#classPath+"/login?menu=im"                     |im  	 |		|inventory.png|180
+Requisition								|#classPath+"/login?menu=imreqall"   			 |im  	 |	|inventory.png|180
+//HR & Payroll           				|#classPath+"/login?menu=pd"                     |ca     |   	|hrm.png|180
+Production              				|#classPath+"/login?menu=mo"                     |ca     |   	|production.png|180
+HR & Payroll            				|#classPath+"/login?menu=pd"                     |ca     |   	|hrm.png|180
+
+
+//Customer Approval Process             |#classPath+"/login?menu=cacusapv"
+//Product Approval Process              |#classPath+"/login?menu=caitemapv"
+//Supplier Approval Process             |#classPath+"/login?menu=casupapv"
+
+//C&F            						|#classPath+"/login?menu=cnf"             		|o,im,so	|  	|purchase.png|180 //|fa-home|180
+//Marketing             				|#classPath+"/login?menu=mk"                     |o,im,so|  	|sales.png|180
+//Production            				|#classPath+"/login?menu=mo"                     |ca     |   	|production.png|180
+//Sales & Invoicing       				|#classPath+"/login?menu=op"                     |ac     |      |sales.png|180
+//Sales and Distribution
+//Sales Target          				|#classPath+"/login?menu=optarget"     		 |ac     |      |sales.png|180
+//Machine Management    				|#classPath+"/login?menu=bm"                     |ca     |   	|production.png|180
+//Costing               				|#classPath+"/login?menu=costing"                |ca     |   	|production.png|180
+//Change Password       				|#classPath+"/login?screen=xuserspass"           |ac     |      |180
+//Log Out               				|#classPath+"/login?screen=*logout"              |ca     |  	|180
+//Management            				|#classPath+"/login?menu=management"             |ac     |      |administration.png|180
+HCM Self-Service(HCMSS)				    |#classPath+"/login?menu=pdrepall"                |ca       |   		|100
+//-------------------------------------------------------------------
+CTS Order    			                |#classPath+"/login?screen=ctsheader"	
+Barcode Movement Details 1  			    |#classPath+"/login?screen=ctsdetail"	
+Barcode Movement Details 2 			    |#classPath+"/login?screen=barcodedetail"	
+
+Money Requisition and Adjustment 					|#classPath+"/login?menu=pomoneyreq"

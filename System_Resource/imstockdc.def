@@ -1,0 +1,27 @@
+product ZAB ERP
+
+table imstockdc
+  caption "Item Warehouse View"
+  columns zid,xitem,xwh,xmoalc,xopalc,xqtyit,xqtyrt,xinhand,xavail
+  primary key zid,xitem,xwh
+
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+  sql create view imstockdc (zactive,zid,xitem,xdesc,xrate,xwh,xgitem,xmoalc,xopalc,xqtyit,xqtyrt,xinhand,xavail,xminqty,xmaxqty) ~
+            as SELECT caitem.zactive,caitem.zid, caitem.xitem,caitem.xdesc,isnull(caitem.xrate,0),isnull(xcodes.xcode,''),caitem.xgitem,~
+			isnull((select sum(mo1.xqtyreq) from modetail mo1 where mo1.xitem=caitem.xitem and (select mo2.xwh from modetail mo2 where mo2.xbatch=mo1.xbatch and mo2.xitem=mo1.xitem and mo2.zid=mo1.zid)=xcodes.xcode and mo1.zid=caitem.zid and (select mo3.xstatusmor from moheader mo3 where mo3.xbatch=mo1.xbatch and mo3.zid=mo1.zid) not in ('Completed')),0),~
+            isnull((select sum(xqtydoc) from opdcdetail where opdcdetail.xitem=caitem.xitem and (select opdcheader.xfwh from opdcheader where opdcheader.xdocnum=opdcdetail.xdocnum and opdcheader.zid=opdcdetail.zid)=xcodes.xcode and opdcdetail.zid=caitem.zid and (select opdcheader.xstatusdoc from opdcheader where opdcheader.xdocnum=opdcdetail.xdocnum and opdcheader.zid=opdcdetail.zid)='Open'),0),~
+            isnull((select sum(xqtyord) from imtordetail where imtordetail.xitem=caitem.xitem and (select imtorheader.xfwh from imtorheader where imtorheader.xtornum=imtordetail.xtornum and imtorheader.zid=imtordetail.zid)=xcodes.xcode and imtordetail.zid=caitem.zid and (select imtorheader.xstatustor from imtorheader where imtorheader.xtornum=imtordetail.xtornum and imtorheader.zid=imtordetail.zid) not in ('Confirmed','Transferred','','Rejected','Dismissed','Partially Delivered','Fully Delivered')),0),~
+            isnull((select sum(xqtyord) from imtordetail where imtordetail.xitem=caitem.xitem and (select imtorheader.xtwh from imtorheader where imtorheader.xtornum=imtordetail.xtornum and imtorheader.zid=imtordetail.zid)=xcodes.xcode and imtordetail.zid=caitem.zid and (select imtorheader.xstatustor from imtorheader where imtorheader.xtornum=imtordetail.xtornum and imtorheader.zid=imtordetail.zid) not in ('Confirmed','Transferred','','Rejected','Dismissed','Partially Delivered','Fully Delivered')),0),~
+            isnull((select sum(xqty*xsign) from imtrn where imtrn.xitem=caitem.xitem and imtrn.xwh=xcodes.xcode and imtrn.zid=caitem.zid),0),~
+            (isnull((select sum(xqty*xsign) from imtrn where imtrn.xitem=caitem.xitem and imtrn.xwh=xcodes.xcode and imtrn.zid=caitem.zid and left(ximtrnnum,2)<>'OT'),0) ~
+            -(isnull((select sum(xqtydoc) from opdcdetail where opdcdetail.xitem=caitem.xitem and (select opdcheader.xfwh from opdcheader where opdcheader.xdocnum=opdcdetail.xdocnum and opdcheader.zid=opdcdetail.zid)=xcodes.xcode  and opdcdetail.zid=caitem.zid and (select opdcheader.xstatusdoc from opdcheader where opdcheader.xdocnum=opdcdetail.xdocnum and opdcheader.zid=opdcdetail.zid)='Open'),0) ~
+            +isnull((select sum(xqtyord) from imtordetail where imtordetail.xitem=caitem.xitem and (select imtorheader.xfwh from imtorheader where imtorheader.xtornum=imtordetail.xtornum and imtorheader.zid=imtordetail.zid)=xcodes.xcode and imtordetail.zid=caitem.zid and (select imtorheader.xstatustor from imtorheader where imtorheader.xtornum=imtordetail.xtornum and imtorheader.zid=imtordetail.zid) not in ('Confirmed','Transferred','','Rejected','Dismissed')),0) ~
+			+isnull((select sum(mo1.xqtyreq) from modetail mo1 where mo1.xitem=caitem.xitem and (select mo2.xwh from modetail mo2 where mo2.xbatch=mo1.xbatch and mo2.xitem=mo1.xitem and mo2.zid=mo1.zid)=xcodes.xcode and mo1.zid=caitem.zid and (select mo3.xstatusmor from moheader mo3 where mo3.xbatch=mo1.xbatch and mo3.zid=mo1.zid) not in ('Completed')),0))),isnull(caitem.xminqty,0),isnull(caitem.xmaxqty,0) ~
+            FROM caitem join xcodes on xcodes.xtype='Branch' and caitem.zid=xcodes.zid where caitem.zactive='1' and xcodes.xcode<>''
+
+			
+			
+  end table

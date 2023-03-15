@@ -1,0 +1,151 @@
+screen accashadvdetailadj
+		sidebar list one
+		sections form one, jscript myscript
+
+
+		list one
+		caption "Adjustment Detail"
+		table acreqdetailadj 
+		order xrow
+		fixed xacreqnum
+		rows 20
+		objects  xrow attrib(link "login?screen=accashadvdetailadj&command=Show&xrow=?"), ~
+		xnote,xamount
+		
+		headers "Row No","Justification","Total Amount"
+		
+		totals "Total","",sum
+		end list
+
+		form one 
+		caption "Adjustment No: " + xacreqnum
+		table acreqdetailadj 
+		primary key xacreqnum,xrow
+		order xacreqnum,xrow
+		fixed xacreqnum
+		return "login"
+		layout 1
+		pstyle 3
+		objects ~
+			Add,Delete,Show,Clear,Top, Previous, Next, Bottom,Return,"<p>" ,~ 
+			xrow attrib(row 0 1),xnote,xamount 
+
+		field xdesc
+		Caption Fund Requisition No 
+		display text
+		end Field
+		
+		field xnote
+		Caption Justification
+		end Field
+		
+		field xrow
+		event before 
+		if acreqheaderadj.xstatus("xacreqnum='"+xacreqnum+"'") .ne. "Open" .and. acreqheaderadj.xstatus("xacreqnum='"+xacreqnum+"'") .ne. "Rejected" .and. acreqheaderadj.xstatus("xacreqnum='"+xacreqnum+"'") .ne. "" 
+		set #field(Delete.attrib) = "disabled" 
+		set #field(Add.attrib) = "disabled" 
+		set #field(Update.attrib) = "disabled" 
+		end if
+		end event
+		end Field
+		 
+		 
+		field Add
+		event before 
+		set advnum=#sql("select xadvnum from acreqheaderadj where xacreqnum='"+xacreqnum+"'") 
+		double advamt=#sql(double,"select xprime from acreqheader where xacreqnum='"+advnum+"'") 
+		double advbal=#sql(double,"select sum(xprime) from acreqheaderadj where xadvnum='"+advnum+"'") 
+		double advrem=advamt-advbal
+		//double reqamt=#sql(double,"select sum(xprime) from acreqheaderadj where xacreqnum='"+xacreqnum+"'") 
+		//double reqamt=reqamt+xamount
+		//print advnum
+		//print advamt
+		//print advbal
+		//print advrem
+		//print reqamt
+		//print xamount
+		
+		if xamount<0.1
+			error "Please Write Amount!"
+		else if xnote .eq. ""
+			error "Please write Justification!" 
+		//else if xamount>advrem
+			//error "Adjustment Exceeds Advance Amount" 	
+		end if
+		end event 
+		event after
+			 set temp = #spsql(zabsp_validateAfter_ADJ_nldl,#id,xacreqnum) 
+        end event
+		end field
+
+		field Update
+		event before 
+		set advnum=#sql("select xadvnum from acreqheaderadj where xacreqnum='"+xacreqnum+"'") 
+		double advamt=#sql(double,"select xprime from acreqheader where xacreqnum='"+advnum+"'") 
+		double advbal=#sql(double,"select sum(xprime) from acreqheaderadj where xadvnum='"+advnum+"'") 
+		double advrem=advamt-advbal
+		//double reqamt=#sql(double,"select sum(xprime) from acreqheaderadj where xacreqnum='"+xacreqnum+"'") 
+		//double reqamt=reqamt+xamount
+		//print advnum
+		//print advamt
+		//print advbal
+		//print advrem
+		//print reqamt
+		//print xamount
+		
+		if xamount<0.1
+			error "Please Write Amount!"
+		else if xnote .eq. ""
+			error "Please write Justification!" 
+		//else if xamount>advrem
+			//error "Adjustment Exceeds Advance Amount" 
+		end if
+		end event
+		event after
+			 set temp = #spsql(zabsp_validateAfter_ADJ_nldl,#id,xacreqnum) 
+        end event
+		end field
+
+		field Delete
+		event after
+			 set temp = #spsql(zabsp_validateAfter_ADJ_nldl,#id,xacreqnum) 
+        end event
+		end field		
+ 
+		embed onsubmit="return submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+
+
+		end form
+
+		jscript myscript
+
+		<script language="javascript" type="text/javascript">
+		var detail
+
+		function clicked(b){
+		detail=b.value
+		}
+		function submitit(form){
+		 if (detail=="Return"){
+            form.screen.value = "accashadvheaderadj"
+            form.searchbutton.value =  "Find xacreqnum=?"
+          }
+		if (detail=="Send for Approval"){
+		if(confirm('Are You Confirm ?')){
+		form.searchbutton.value = "Send for Approval"
+		}else{
+		form.searchbutton.value = "Show"
+		}
+		}
+		}
+
+		</script>
+		end jscript
+
+
+end screen

@@ -1,0 +1,79 @@
+screen fatogl
+	caption "FA TO GL Transfer"
+	sidebar list voucher
+	sections form detail, jscript myscript
+	 
+	list voucher
+		caption "Depreciation Voucher List"
+		table acheader
+		//maxwidth 570
+		order xvoucher desc
+		select "xlong='Asset Depreciation'"
+		rows 250
+		objects	xvoucher attrib(link "login?screen=acheader&command=Show&xvoucher=?"),~
+				xdate,xstatusjv
+		headers "Voucher No","Date","Status" 
+	end list
+ 
+	form detail
+		caption <font color=black>"FA TO GL Transfer"<font>
+		//select
+		return "login"
+		layout 2
+		pstyle 3
+		objects ~
+				Clear,Process,"</b></font><p>",~
+                xdate attrib(local),xdumm,xyear,xper
+
+        field xdate
+			caption Transfer Date
+        end field
+
+        field xdumm
+			attrib local
+			display const 
+			caption
+			event before
+				set xyear=#sub(xdate,0,4)
+				set xper=#sub(xdate,5,2)
+			end event
+        end field
+		
+		field xyear
+			attrib local 
+			caption Year
+        end field
+
+        field xper
+			attrib local
+			caption Period
+        end field
+
+        field Process
+			event after
+				set temp =  #spsql(zabsp_FA_DepreciationToGL,#id,#user,xyear,xper,xdate,"FA Depreciation")
+				action show
+			end event
+        end field
+  
+	end form
+ 
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail="clicked"
+        }
+        function submitit(form){
+          if (detail=="clicked"){
+            form.screen.value = "imser1"
+            form.searchbutton.value = "Find xitem=?"
+          }
+        } 
+
+        </script>
+     end jscript
+
+
+end screen

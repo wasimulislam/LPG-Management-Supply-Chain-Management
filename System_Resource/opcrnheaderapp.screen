@@ -1,0 +1,559 @@
+screen opcrnheaderapp
+
+     sidebar list one,list two,list inv
+     sections form one, jscript myscript
+
+     list one
+        caption "Pending Sales Return For Approval"
+        table opcrnheader
+        dtlengthmenu [100, -1], [100, "All"]
+		dtordering [0,"desc"]		
+        order xcrnnum desc
+		select "(xidsup='"+#position+"' or xsuperior2='"+#position+"' or xsuperior3='"+#position+"') ~
+		and '"+#position+"'<>'' and left(xcrnnum,4)='SLR-'  and xstatus not in ('Approved','','Confirmed','Rejected','Recommended')"
+        rows 25
+        objects xcrnnum attrib(link "login?screen=opcrnheaderapp&command=Show&xcrnnum=?"),~
+		xdate,prepbatch equals((select xname from pdmst where zid=opcrnheader.zid and xstaff=opcrnheader.xpreparer))
+				 
+        header "Sales Return No","Date","Preparer"
+     end list
+	 
+	  list two
+        caption "Last 5 Approved Sales Return"
+        table opcrnheaderappview
+		dtlengthmenu [100, -1], [100, "All"]
+		dtordering [0,"desc"]
+        order xcrnnum desc
+       select "(xposition='"+#position+"') and left(xcrnnum,4)='SLR-' and xstatus in ('Approved','Rejected')"
+	   rows 5
+        objects xcrnnum attrib(link "login?screen=opcrnheaderapp&command=Show&xcrnnum=?"),xdate,xordernum
+		
+        headers "Sales Return No","Date","Invoice No"
+     end list
+
+     list inv
+        caption "Return Amount"
+        table opcrnheader
+        order xcrnnum
+        fixed xcrnnum
+        rows 10
+        objects  xcrnnum,xtotamt,xvatamt,xdiscamt,(xtotamt+xvatamt-xdiscamt)
+
+        header "Return No","Trade Price","VAT","Discount","Net Amount"
+     end list
+
+
+     form one
+        caption "Sales Return Approval"
+        table opcrnheader
+        primarykey xcrnnum
+        order xcrnnum 
+        select "left(xcrnnum,4)='SLR-'"
+        return "login"
+        layout 2
+        pstyle 3
+        objects ~
+               Show,Clear,Top,Previous,Next,Bottom,Approve,Reject,"<p>" ,~//Details, Add,Update,Delete, 
+                xcrnnum,xdate display(const),xcus display(const),xorg display(const),xref display(const),xpaymentterm display(const),~
+				xwh display(const),xbrname,xdiscamt display(const),xsubcat display(const),xpaymenttype display(hide),~
+              	xterritory display(const),xtso display(hide),xtsoname,xsp display(hide),xarea display(const),xsm display(hide),asmname,~
+				xdivisionop display(const),xrsm display(hide),dsmname,~
+                xstatuscrn,xstatusar display(const),xstatus,xtotamt display(hide), ~
+                xait display(hide),xvatamt display(hide),xdisc display(hide),xdiscf display(hide),~
+                xaitamt display(hide),~
+				xpkey attrib(local) display(hide),~
+                xfm display(hide),xamount display(hide),xnetamt,xpp display(hide),~
+		    	xyear display(hide),xper display(hide),xtype display(hide),~
+				xstatusjv display(const), xvoucher display(const),~
+				,,,,,~
+				signatorysec display(const),,,~
+				xpreparer display(hide),preparer display(const),~	
+				xsignatory1 display(hide),signatory1  display(const),~
+				xsignatory2 display(hide),signatory2 display(const),~
+				xsignatory3 display(hide),signatory3 display(const),~
+				xsignatory4 display(hide),signatory4 display(const),~
+				xsignatory5 display(hide),signatory5 display(const),~
+				signreject display(const),xnote1,,~
+				xsignreject display(hide)
+				
+
+//----------------Declare Local Field--------------------		
+		
+		field xpreparer
+		caption Preparer
+        end field
+		
+		field xsignatory1
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory1=opcrnheader.xsignatory1("xcrnnum='"+xcrnnum+"'")
+		  end event
+        end field
+		
+		field xsignatory2
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory2=opcrnheader.xsignatory2("xcrnnum='"+xcrnnum+"'")
+		  end event
+        end field
+		
+		field xsignatory3
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory3=opcrnheader.xsignatory3("xcrnnum='"+xcrnnum+"'")
+		  end event
+        end field
+		
+		field xsignatory4
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory4=opcrnheader.xsignatory4("xcrnnum='"+xcrnnum+"'")
+		  end event
+        end field
+		
+		field xsignatory5
+		caption Preparer
+		  attrib local
+		  event after
+		  set xsignatory5=opcrnheader.xsignatory5("xcrnnum='"+xcrnnum+"'")
+		  end event
+        end field
+		
+		field xsignreject
+		  attrib local
+		  event after
+		  set xsignreject=opcrnheader.xsignreject("xcrnnum='"+xcrnnum+"'")
+		  end event
+        end field
+		
+			
+		field signatorysec
+		attrib local
+		caption <span class=sheader style="	BACKGROUND:#0480ba;	PADDING-BOTTOM: 5px;PADDING-LEFT: 10px;color:White; PADDING-RIGHT: 150px; PADDING-TOP: 2px;font-weight:bolder;font-weight: 900;">Signatories</span>
+		display const
+		//column 2
+		end field	
+		
+		
+		field preparer
+          caption Preparer
+		  attrib local
+		  event after
+		  set preparer=pdmst.xname("xstaff='"+xpreparer+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xpreparer+"'")+", "+pdmst.xdeptname("xstaff='"+xpreparer+"'")+"</font>"
+		  end event
+        end field
+		
+		field signatory1
+          caption pick,"select xsignatory1 from pdsignatoryrpt where xtypetrn='SLR Approval'"
+		  attrib local
+		  event after
+		  if xsignatory1 .ne. ""
+		  set signatory1=pdmst.xname("xstaff='"+xsignatory1+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory1+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory1+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		field signatory2
+          caption pick,"select xsignatory2 from pdsignatoryrpt where xtypetrn='SLR Approval'"
+		  attrib local
+		  event after
+		  if xsignatory2 .ne. ""
+		  set signatory2=pdmst.xname("xstaff='"+xsignatory2+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory2+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory2+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		
+		field signatory3
+          caption pick,"select xsignatory3 from pdsignatoryrpt where xtypetrn='SLR Approval'"
+		  attrib local
+		  event after
+		  if xsignatory3 .ne. ""
+		  set signatory3=pdmst.xname("xstaff='"+xsignatory3+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory3+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory3+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		field signatory4
+          caption pick,"select xsignatory4 from pdsignatoryrpt where xtypetrn='SLR Approval'"
+		  attrib local
+		  event after
+		  if xsignatory4 .ne. ""
+		  set signatory4=pdmst.xname("xstaff='"+xsignatory4+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory4+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory4+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		field signatory5
+          caption 
+		  pick,"select xsignatory5 from pdsignatoryrpt where xtypetrn='SLR Approval'"
+		  attrib local
+		  event after
+		  if xsignatory5 .ne. ""
+		  set signatory5=pdmst.xname("xstaff='"+xsignatory5+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory5+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory5+"'")+"</font>"
+		  end if
+		  end event
+        end field
+		
+		field signreject
+          caption Reject Signatory
+		  attrib local
+		  event after
+		  if xsignreject .ne. ""
+		  set signreject=pdmst.xname("xstaff='"+xsignreject+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignreject+"'")+", "+pdmst.xdeptname("xstaff='"+xsignreject+"'")+"</font>"
+		  end if	
+		  end event
+        end field
+		
+	/////////////END////////////////			
+
+	field xpaymenttype
+        caption <font style="color:red;">Invoice Type
+    end field
+	
+	field xref
+		caption Reason
+	end field
+
+	field xitem
+		pick
+	end field 
+
+	field xnote1
+		caption Reject Note
+	end field 
+
+	field xstatuscrn
+		caption Sales Return Status
+	end field  
+
+	field xstatusar
+		caption Receivable Status
+	end field   
+
+	field xstatusjv
+        caption Voucher Status
+    end field 
+	
+	field xvoucher
+        caption Voucher Number
+    end field 
+
+	field xnetamt
+		  attrib local
+		  display const
+		  caption <font size=+1 color=blue>Receivable Amount </font>
+		  event after
+			set xnetamt = xtotamt+xvatamt
+		  end event
+     end field
+
+	field show
+		  event after
+          set xpkey=xcrnnum
+		  end event
+    end field    
+
+	field xamount
+		  caption <font size=+1 color=red>Invoice Amount</font>
+    end field
+
+    field xdiscamt
+       // display const
+    end field
+
+    field xdum
+        attrib local
+        caption 
+        display const
+    end field
+	   
+	field xwh
+		caption Warehouse / Store
+        // default ""
+    end field
+
+    field xbrname
+        attrib local
+        caption Warehouse / Store Name
+        display const
+        event after
+          set xbrname=xcodes.xlong("xtype='Branch' and xcode='"+xwh+"'")
+        end event
+    end field
+	   
+	field xstatus
+		caption Approval Status
+	end field 
+
+        field xorg
+		caption Customer Name
+          event after
+          set xorg=cacus.xorg("xcus='"+xcus+"'")
+          end event
+        end field
+
+        field xordernum
+		caption Invoice No
+          pick list opordcrnstore 
+        end field
+		
+		
+		field xtso 
+        caption TSO ID
+		end field
+		
+		field xtsoname
+        attrib local
+        display const
+        caption <font style="color:orange;font-weight:bolder">Territory Sales Officer Name
+        event after
+          set xtsoname=cappo.xname("xsp='"+xtso+"'")+" : "+xtso
+        end event
+      end field
+	  
+	  field xarea
+		caption Area	
+        event after
+        end event
+	  end field 
+		
+		field asmname
+        attrib local
+        display const
+        caption Area Sales Manager Name
+        event after
+          set asmname=cappo.xname("xsp='"+xsm+"'")+" : "+xsm
+        end event
+      end field
+
+		
+		
+		field dsmname
+        attrib local
+        display const
+        caption Divisional Sales Manager Name
+        event after
+          set dsmname=carsm.xname("xrsm='"+xrsm+"'")+" : "+xrsm
+        end event
+      end field
+
+        field xcrnnum
+		width 16
+		caption Sales Return Number
+		pick list xcrnnum
+          event after
+		class careports(getReport{opreturnbill;2;in,st;zid,crn;xcrnnum;Print Return})
+            set globals(xordernum)=xordernum
+            set globals(xcrnnum)=xcrnnum
+			double qtycrn=#sql("select sum(xqtyord) from opcrndetail where xcrnnum='"+xcrnnum+"'")
+     	        if xstatus .ne. "Applied" .or. xstatus .eq. "Recommended"
+		          	set #field(Approve.attrib)="disabled"
+          			set #field(Reject.attrib)="disabled"
+        		  end if
+				 if qtycrn > 0
+					set #field(xordernum.display)="const"
+				 end if
+				 
+				 if opcrnheader.xidsup("xcrnnum='"+xcrnnum+"'") .ne. #position .and. opcrnheader.xsuperior2("xcrnnum='"+xcrnnum+"'") .ne. #position .and. opcrnheader.xsuperior3("xcrnnum='"+xcrnnum+"'") .ne. #position
+					set #field(Approve.attrib)="disabled"
+          			set #field(Reject.attrib)="disabled"
+				 end if
+				 
+				 
+				 
+          end event
+        end field
+
+        field add
+          event before
+		  set xpreparer=pdmst.xstaff("xposition='"+#position+"'")
+			set type = opdoheaderview.xtype("xdornum='"+xordernum+"'")
+			set status = opdoheaderview.xstatusord("xdornum='"+xordernum+"'")
+			set xterritory = opdoheaderview.xterritory("xdornum='"+xordernum+"'")
+			set xarea = opdoheaderview.xarea("xdornum='"+xordernum+"'")
+			set xdivisionop = opdoheaderview.xdivisionop("xdornum='"+xordernum+"'")
+			set invdate = #sql("select xdate from opdoheader where xdornum='"+xordernum+"'")
+			if status .eq. "Open"
+				error "Cannot Proceed -- Invoice Not Confirmed"
+			else if xdate .lt. invdate
+				error "Cannot Proceed -- Return Before Invoice Date Not Allowed"
+			else
+				set xtso=cacus.xso("xcus='"+xcus+"'")
+	        	set xtype = "NPL"
+	        	set xstatuscrn = "Open"
+      	  		set xstatusar = "Open"
+				set xstatusjv = "Open"
+				set xstatus = "Open"
+		  		set xpp = opdoheaderview.xpp("xdornum='"+xordernum+"'")
+      	  		set xyear = #sub(xdate,0,4)
+ 	   	  		set xper = #sub(xdate,5,2)
+ 	
+            //*********** GETTING INFO FROM CACUS ****************
+
+
+            //*********** GETTING TRN NO ****************
+				set customer = opdoheaderview.xdornum("xdornum='"+xordernum+"'")
+				if #result .eq. "true"
+	      	    set xwh = opdoheaderview.xwh("xdornum='"+xordernum+"'")
+	      	    set year = #sub(xdate,2,2)
+      	        set trn ="SLR-" //xtrn.xtrn("xtypetrn='CRN Number' and xwh='"+xwh+"' and left(xtrn,2)='SR'")
+      		  	set xcrnnum = #trn("CRN Number",trn,10)
+		        set xcrnnum = #sub(xcrnnum,0,4)+year+#sub(xcrnnum,4,10)
+				set xpkey=xcrnnum
+		  end if
+		end if
+          end event
+          event after
+            set temp = #spsql(sp_validateAfterHeaderCRN,#id,#user,xcrnnum,xordernum)
+//            action Show
+          end event
+        end field
+
+      field update
+			event before
+					set xpreparer=pdmst.xstaff("xposition='"+#position+"'")
+					set invdate = #sql("select xdate from opdoheader where xdornum='"+xordernum+"'")
+					if xpkey .ne. xcrnnum
+						error "Please Show First!"
+					else if xdate .lt. invdate
+						error "Cannot Proceed -- Return Before Invoice Date Not Allowed"
+					else
+						set xtso=cacus.xso("xcus='"+xcus+"'")
+						set xwh = opdoheaderview.xwh("xdornum='"+xordernum+"'")
+						set xpp = opdoheaderview.xpp("xdornum='"+xordernum+"'") 	
+						set xyear = #sub(xdate,0,4)
+						set xper = #sub(xdate,5,2)
+					end if
+			end event
+			event after
+				set temp = #spsql(sp_validateAfterHeaderCRN,#id,#user,xcrnnum,xordernum)
+			end event
+     end field
+		
+        field Confirm
+		event before
+			set backdate=#sql("select xdateexp from acdef")
+			set backentry=#sql("select xbacklock from acdef")
+			if backentry .eq. "No" .and. xdate .le. backdate
+			 error "Back Lock Entry does not allow!"
+			end if 
+		end event
+          event after
+			if xstatuscrn .ne. "Confirmed"
+				set temp = #spsql(sp_confirmCRN,#id,#user,xcrnnum,xdate,xwh,6)
+			end if	
+			
+			if xstatusar .ne. "Confirmed"
+				set temp = #spsql(zabsp_OP_transferOPtoAR,#id,#user,xcrnnum,"opcrnheader")
+			end if
+			if opcrnheader.xstatusjv("xcrnnum='"+xcrnnum+"'") .ne. "Confirmed"
+				set temp = #spsql(zabsp_OP_transferOPtoGL,#id,#user,xcrnnum,"opcrnheader")
+				set temp = #spsql(zabsp_OP_transferIMtoGL,#id,#user,xcrnnum)
+			end if	
+			//set temp = #spsql(zabsp_SR_transferSRtoAP,#id,#user,xcrnnum,"opcrnheader")
+			//set temp = #spsql(zabsp_SRPR_transferARtoGL,#id,#user,xcrnnum)
+			action show
+          end event
+        end field		
+
+        field Confirmsss
+          event before
+            set temp = #sql("select xrow from opcrndetail where xcrnnum='"+xcrnnum+"'")
+            if #result .eq. "false"
+              error "Cannot Proceed -- Detail Not Exists"
+            end if
+          end event
+          event after
+              set temp = #spsql(sp_CRNProcess,#id,#user,#wh,xdate,xdate,xcrnnum,xcrnnum)
+//            set temp = #spsql(sp_confirmCRN,#id,#user,xcrnnum,xdate,xwh,8)
+//            set temp = #spsql(sp_transferOPtoARReturn,#id,#user,xcrnnum,xordernum,xdate,xwh,xsp,xcus,xtotamt,xait,xdisc,xdiscf)
+//            action Show
+          end event
+        end field
+		
+		field Approve
+             event before
+			if opcrnheader.xstatus("xcrnnum='"+xcrnnum+"'") .eq. "Approved"
+			error "Cannot Proceed-- Already Approved."
+			if opcrnheader.xidsup("xcrnnum='"+xcrnnum+"'") .ne. #position .and. opcrnheader.xsuperior2("xcrnnum='"+xcrnnum+"'") .ne. #position .and. opcrnheader.xsuperior3("xcrnnum='"+xcrnnum+"'") .ne. #position
+			error "Superior doesn't match."
+			else if #position .eq. ""
+			error "Superior doesn't match."
+			end if
+            end event
+            event after
+			 set temp = #spsql(zabsp_apvprcs,#id,#user,#position,xcrnnum,0,xstatus,"SLR Approval")
+			action show
+            end event
+          end field  
+		  
+		   field Reject
+            event before
+			set status=opcrnheader.xstatus("xcrnnum='"+xcrnnum+"'")
+			if status .eq. "Open" .or. status .eq. "Approved"
+				error "Sales Return can not be reject"
+			else if xnote1 .eq. ""
+				error "Please Write Reject Note."
+			end if
+		   end event
+		   event after
+		   set temp =#sql("update opcrnheader set xnote1 ='"+xnote1+"' where xcrnnum='"+xcrnnum+"'")
+		   set temp =  #spsql(zabsp_Reject_Request,#id,#user,#position,0,xcrnnum,"SLR Approval")
+		   action show
+		   end event
+          end field	
+
+        embed onsubmit="return submitit(this)"
+
+        field Details
+          embed onclick="clicked(this)"
+        end field
+
+       field Print_Return
+         embed onclick="clicked(this)"
+        end field
+		
+
+
+     end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        var result
+//        function changeit(f){
+//          document.one.xexch.style.visibility="hidden"
+//          document.one.xexch.value = "2"
+//        }
+        function clicked(b){
+          button=b.value
+        }
+        function submitit(form){
+          result = true
+          if (button=="Details"){
+            form.screen.value = "opcrndetail"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (button=="Print_Return"){
+           var link =  "login?screen=*crystal+opreturnbill(xcrnnum=Return No)&option=Print+Return&menu=*none*"//&xdornum="+form.xdornum.value+""
+              var width = 240
+              var left = 760
+              if (screen){
+                left = screen.width-width
+             }
+              var param = "toolbar=no,location=yes,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,height=200,width="+width+",top=0,left="+left
+              window.open(link,"StockStatus",param)
+          }
+          return result
+        }
+        </script>
+     end jscript
+
+end screen

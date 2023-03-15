@@ -1,0 +1,287 @@
+screen cacussearch
+     sidebar list //one,list two
+     sections  form one,jscript myscript
+
+  
+  
+
+     form one
+        caption "Customer Info"
+      	table cacus
+        primarykey xcus
+        order xcus
+	   select "xtype='Customer'"
+        return "login"
+        layout 3
+        pstyle 3
+        objects Show,Clear,Top,Previous,Next,Bottom,Survey_Info,Update_Contract_Signing_Time,~
+            xcus,xorg display(const),xmadd display(const),xcontact display(const),xdesignation display(const),xphone display(const),xfax display(const),xemail display(const),xsubcat display(const),xgcus display(const),xfield display(hide),~
+			xsupcat display(const),xcustype display(const),xcuscomptype display(const),xcainstype display(hide),xterritory display(const),~
+			xso display(const),xsoname display(const),xthana display(const),xdistrict display(const),xareaop display(const),xdivisionop display(const),xsp display(hide),~
+			xmarket display(hide),xroute display(hide),~
+            xpaymentterm display(const),~
+		    xinvtoinvcr display(hide),xcrterms display(hide),xcrlimit display(hide),~ //xcrused display(hide),~
+		    xdateeff display(hide),xdateexp display(hide),~
+		    xref display(hide),~
+            xallowcrinv display(hide),xallbndisc display(hide),~
+            xstatuscus display(hide),xwh display(hide)~
+			xmobile display(const),~
+		    xdisc display(const),xdiscdetamt display(const),~
+		    xdelicontact display(const),xdelicontactphn display(const),xdeliloc display(const),xtype display(hide),~
+			xtransshipment display(const),xvatregno display(const),xtin display(const),xnid display(const),zactive display(hide),~
+			xcstime,xstatus display(const),xnote1 display(const) 
+			
+
+
+
+	
+	field xvatregno
+		caption Bin No
+		display const
+		height 1
+	end field
+	
+	field xstatuscus
+		default "Open"
+	end field
+	
+	field xcainstype
+	attrib local
+	display hide
+	caption <FONT SIZE=2 COLOR=red>Distributor Incentive Type</font>
+		//display const
+		pick "Multiple,Exclusive"
+		//default "Exclusive"
+	end field
+	
+	field xmadd
+		width 22
+	end field
+	
+	field xgcus
+		caption <FONT SIZE=2 COLOR=red> Customer Group</font> 
+	end field
+	
+	field xtransshipment
+		caption Transport
+		display const
+	end field
+	
+	field xsubcat
+		caption <FONT SIZE=2 COLOR=red>Sales Category</font> 
+		pick "select xcode from xcodes where xtype='Sub Category'"
+	end field
+	
+	field xpaymentterm
+		caption <FONT SIZE=2 COLOR=red>Payment Term</font>
+		default ""
+		pick "Cash,Credit"
+	end field
+	
+	field xcontact
+		display const
+	end field
+	
+	field xdesignation
+		display const
+		width 40
+		pick
+	end field
+	
+	field xphone
+		display const
+	end field
+	
+	field xfax
+		display const
+	end field
+	
+	field xdeliloc
+		display const
+		width 30
+		pick
+	end field
+	
+	field xsupcat
+		Caption Customer Category
+		pick code
+	end field
+	
+	field xcustype
+		display const
+		Caption Customer Type
+		pick code
+	end field
+
+       field xcus
+	   caption Customer ID
+	   pick list cacusop
+		event after
+	     	 //     if xpaymentterm .eq. "Cash"
+		     //    	set #field(Credit.attrib)="disabled"
+       	     // end if
+			set globals(xcus)=xcus
+		end event
+	    end field
+	
+	    field xterritory
+		display const
+		caption <FONT SIZE=2 COLOR=red>Territory</font> 
+		pick list xcodesterritoryall
+		end field
+ 	
+	    field xnote
+		weight 90
+		height 2
+		column 2
+	    end field
+ 	
+	    field xdateeff
+		default #date
+	    end field
+
+	    field xdateexp
+		default "2979-01-01"
+	    end field
+
+	
+
+	    field xsp
+		caption SRO Code
+		pick list caspsro
+	    end field
+		
+		field xthana
+		caption Thana
+		pick list xcodesthana
+	    end field
+		
+		field xdistrict
+		caption District
+		display const
+		pick list xcodesdistrict
+		// event after
+		// set xdistrict = xcodes.xdistrictop("xtype='OP Thana' and xtypeobj='Thana' and xcode='"+xthana+"' and zactive='1'")  
+		// end event
+	    end field
+
+	    field xspname
+		attrib local
+		caption SRO Name
+		display const
+		event after
+			set xspname = cappo.xname("xsp='"+xsp+"' and xtype='SRO'")
+		end event
+	    end field
+		
+		field xso
+		caption <FONT SIZE=2 COLOR=red>TSO Code</font> 
+		display const
+		event after
+			set xso = cappo.xsp("xtype='TSO' and xterritory='"+xterritory+"' and xsubcat='"+xsubcat+"' and zactive='1'")
+		end event
+	    end field
+
+	    field xsoname
+		attrib local
+		caption TSO Name
+		display const
+		event after
+			set xsoname = cappo.xname("xsp='"+xso+"'")
+		end event
+	    end field
+
+	    field xprjname
+		attrib local
+		caption Project Name
+		display const
+		event after
+			set xprjname = xcodes.xlong("xtype='Project Flag' and xcode='"+xproject+"'")
+		end event
+	    end field
+
+		field xwh
+            default #wh
+           end field
+		   
+			field xnote1
+            caption Reject note
+           end field
+
+          field xmarket
+		//display const
+            pick "select xcode from xcodes where xtype='Market' and xwh='"+#wh+"'"
+          end field
+
+
+       field xbrname
+        attrib local
+        caption Branch Name
+        display const
+        event after
+        set xbrname=xcodes.xlong("xtype='Branch' and xcode='"+xwh+"'")
+        end event
+       end field
+
+
+	field show
+	event after
+	end event
+	end field
+	
+    fleld xcstime
+	default #date
+	action show
+	end field
+
+	field Update_Contract_Signing_Time 
+		event after 
+		set temp=#sesql("update cacus set xcstime='"+xcstime+"' where zid='"+#id+"' and  xcus='"+xcus+"'") 
+		action show
+		end event
+	end field
+
+    field xorg
+    	caption Company Name
+    end field
+
+    field Return
+        embed onclick="clicked(this)"
+    end field
+
+    field Update_Contract_Signing_Time
+        embed onclick="clicked(this)"
+    end field
+
+	
+	field Survey_Info
+        embed onclick="clicked(this)"
+    end field
+	
+        embed onsubmit="submitit(this)"
+
+     end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript"> 
+        var but
+        var result
+
+        function clicked(b){
+          but = b.value
+        }
+        function submitit(form){
+          result = true
+          
+		  if (but == "Survey_Info"){
+            form.screen.value = "cacusinfocus"
+            form.searchbutton.value = "Find xcus=?&xorg=?"
+          }
+          return result
+        }
+		
+        </script>
+     end jscript
+
+end screen

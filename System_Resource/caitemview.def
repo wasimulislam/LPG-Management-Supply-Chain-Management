@@ -1,0 +1,20 @@
+product ZAB ERP
+
+table caitemview
+  caption "Items View"
+  columns zid,xitem,xdesc,xgitem,xcatitem,xunitpur,xtitem,zactive,xbrand,xcfpur,xcfsel,xcfiss,xunitsel,xgtype,xitemtype
+
+  primary key zid,xitem,xdesc,xgitem,xcatitem,xunitpur,xtitem,zactive,xbrand,xcfpur,xcfsel,xcfiss,xunitsel,xgtype,xitemtype
+  foreign key
+        zid references zbusiness.zid 
+  end foreign key
+  
+  sql create view caitemview(zid,xitem,xdesc,xgitem,xcatitem,xunitpur,xtitem,zactive,xbrand,xcfpur,xcfsel,xcfiss,xunitsel,xgtype,xitemtype,xcatitemacc) ~
+                  as select c.zid,isnull(c.xitem,''),isnull(c.xdesc,''),isnull(c.xgitem,''),isnull(c.xcatitem,''),isnull(c.xunitpur,''),~
+				  isnull(c.xtitem,''),c.zactive,isnull(c.xbrand,''),isnull(c.xcfpur,0),isnull(c.xcfsel,0),isnull(c.xcfiss,0),~
+				  isnull(c.xunitsel,''),isnull(b.xgtype,''),isnull(c.xitemtype,''),isnull(c.xcatitemacc,'') ~
+				  from caitem c left join xcodes b ON c.zid=b.zid and c.xgitem=b.xcode and b.xtype='Item Group'
+  
+
+
+end table

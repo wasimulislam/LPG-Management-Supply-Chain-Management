@@ -1,0 +1,61 @@
+adminupdate.menu
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Concern Name         			 	|#classPath+"/login?screen=xcodesconcern"
+//Concern Name                   				|#classPath+"/login?screen=xcodes(xtype=Concern Name)"
+//Item Transfer 								|#classPath+"/login?screen=itemtransfer"
+//Party Transfer 								|#classPath+"/login?screen=partytransfer"
+SR/SPR/TO Update			    	|#classPath+"/login?screen=moreqheaderadmin"
+//Work Requisition Update						|#classPath+"/login?screen=mowrheaderadmin"
+PR Update		       				|#classPath+"/login?screen=poreqheaderserviceadmin"
+//QC Update		        						|#classPath+"/login?screen=poqtcheaderadmin"
+//Conveyance Form Update		    			|#classPath+"/login?screen=acconveyancehadmin"
+PO Update		        			|#classPath+"/login?screen=poordheadercashadmin"
+PAF Update		        			|#classPath+"/login?screen=appaymentreqhadmin"
+LC Update		        			|#classPath+"/login?screen=poordlcinfoadmin"
+GRN Update		        			|#classPath+"/login?screen=pogrnheaderadmin"
+//Advance & Adjustment Update (C&F)	|#classPath+"/login?screen=opcashadvheaderadmin"
+Back lock Entry Configure			|#classPath+"/login?screen=acdefyesno"
+Voucher Update						|#classPath+"/login?screen=acheaderadmin"
+Invoice Update 						|#classPath+"/login?screen=opdoheaderadmn"
+Update Delivery Chalan              |#classPath+"/login?screen=opdcheaderadmin" 
+Money Requisition Update			|#classPath+"/login?screen=accashadvheadermanualadmin"  
+
+//BOQ Update 									|#classPath+"/login?screen=pmconstaskheaderadmin"
+Accommodation Update By Admin		|#classPath+"/login?screen=pdaccomodationreqadmin"
+Inventory Update 					|#classPath+"/login?screen=imtrnreadmin"
+Opening Balance Entry               |#classPath+"/login?screen=imtrnreceipt"
+//Refill Empty Cylinder Entry         			|#classPath+"/login?screen=imtrnreceiptrefill"
+AR / AP Update 						|#classPath+"/login?screen=arhedadmin"
+Leave Update 						|#classPath+"/login?screen=pdleaveappadmin"
+Late, Early & Absent Update			|#classPath+"/login?screen=pdatadmin"
+Roster Update 						|#classPath+"/login?screen=pdrostereditadmin"
+Salary Process Closure 	    		|#classPath+"/login?screen=pdballogadmin"
+Transfer Process & Others 			|#classPath+"/login?screen=pdempsign"
+Change Item Process  				|#classPath+"/login?screen=caitemchange"
+Item Transaction Transfer 			|#classPath+"/login?screen=caitemtransfer"
+Change Party Process  				|#classPath+"/login?screen=cacuschange"
+Fund Requisition (Admin)			|#classPath+"/login?screen=pdrfplegaladmin"
+Audit Trail							|#classPath+"/login?screen=*viewcrystal audittrial(4;in,st,st,st;zid,command,firstpar,secpar;xcommand=Action Type,xdegree=1st Param,xdegree=2nd Param, xviewtype=Report View)"
+Item Checking						|#classPath+"/login?screen=*viewcrystal caitemintransaction(3;in,st,st;zid,xitem,type;xitem=Item Code,xdes3=Receive/Issue,xviewtype=Report View)"
+View Product History				|#classPath+"/login?screen=*viewcrystal poreqprint(2;in,st;@zid,@reqnum;xsprnum=SPR No, xviewtype=Report View)"
+User List							|#classPath+"/login?screen=*viewcrystal userlist(2;in,st;zid,user;zemail=User ID, xviewtype=Report View)"
+
+Hold Up Item						|#classPath+"/login?screen=posritempending"
+Item Cost Update 					|#classPath+"/login?screen=imaverggitemcost"
+Product Master(Sellable-Admin)      |#classPath+"/login?screen=caitemadmin"
+Product Master(General-Admin)       |#classPath+"/login?screen=caitemgadmin"
+Service Item Master(Admin)       |#classPath+"/login?screen=caitemserviceadmin"
+Supplier Master (Admin)                       |#classPath+"/login?screen=casupconfirmadmin"|common
+///Sales & Invoicing       							|#classPath+"/login?menu=op"                     |ac     |      |sales.png|180
+//Leave Admin 										|#classPath+"/login?screen=pdleavecanceladmin"
+//-------------------------------------------------------------------
+Update Sales Order        		 	|#classPath+"/login?screen=imtorheaderdlrreqadmin"
+Communication              			|#classPath+"/login?screen=xcodescommunication"
+//production
+BOM For Pre-Process Update			|#classPath+"/login?screen=bmpreprdbomheaderadmin"
+BOM Update							|#classPath+"/login?screen=bmbomheaderadmin"
+Batch For Pre-Process Update		|#classPath+"/login?screen=mopreprdheaderadmin"
+Batch Update						|#classPath+"/login?screen=moheaderadmin"
+

@@ -1,0 +1,291 @@
+screen opdealsdt
+
+     sidebar list cusprice,list one
+     sections form one,jscript myscript
+
+	 
+     list cusprice
+    	caption "Item Price List For Customer "+xcus
+        table cacusprice
+        order xcus
+        select "xcus='"+xcus+"'"
+        rows 500
+        objects xitem attrib(link "abc" embed onclick="return pickItem(this:xrate#:xvatrate#)"),~
+				desc equals((select xdesc from caitem where caitem.zid=cacusprice.zid and caitem.xitem=cacusprice.xitem)),~
+                xrate attrib(name xrate#),xvatrate attrib(name xvatrate#)
+                
+		
+		header "Item Code","Description","Rate","Vat"
+     end list	 
+
+   
+
+     list one
+	  caption "List For Sales Return Adjustment No "+xcrnnum
+        table opdealsdt
+        order xcrnnum,xrow
+        fixed xcrnnum
+        rows 20
+        objects xrow attrib(link "login?screen=opdealsdt&command=Show&xcrnnum=?&xrow=?"), ~
+                xitem,desc equals((select xdesc from caitem where caitem.zid=opdealsdt.zid and caitem.xitem=opdealsdt.xitem)),~
+                xqtyord,xrate,xvatamt,xlineamt
+
+        totals count,"","Totals",sum,sum,"",sum
+        header "Line No","Item Code","Description","Qty Ordered","Rate","VAT Amount","Line Amount"
+     end list
+
+
+     form one
+        caption "Details For Sales Return<br> "+xcrnnum+""
+        table opdealsdt
+        primarykey xcrnnum,xrow
+        order xcrnnum,xrow
+        fixed xcrnnum
+        return "login"
+        layout 2
+        pstyle 3
+        objects ~
+                Add,Update,Delete,Show,Clear,Top,Previous,Next, Bottom,Return,~//
+                xrow attrib(row 0 1),xunit attrib(readonly),~
+                xitem,xqtyord, ~
+                xdesc display(const),xrate,xdiscdetamt attrib(readonly),~
+                xlineamt display(hide),xlong display(hide),xvatrate,xvatamt display(hide),~
+                xcost display(hide),xassetitem display(hide),xratedeposit display(hide),xpkay attrib(local) display(hide)
+
+      field xdesc
+        attrib local
+        display const
+        caption Description
+        event after
+          set xdesc=caitem.xdesc("xitem='"+xitem+"'")
+        end event
+      end field
+
+
+      field xpkay
+		event after
+			set xpkay=xitem
+		end event
+      end field
+
+      field xqtyord
+	  embed required
+      caption Quantity Returned
+      end field
+
+      field xrate
+	  embed required
+      caption Price
+      end field
+
+      field xvatrate
+	  embed required
+      caption Vat Rate
+      end field
+
+      field xrow
+		  display const
+      end field
+	
+	field xunit
+		  caption  Unit of Measure
+		  display text
+		  pick
+      end field
+
+        field xlong
+          height 3
+        end field
+
+  	  field xitem
+	  width 18
+	  	  event after
+  		    set statuscrn = opdealshd.xstatuscrn("xcrnnum='"+xcrnnum+"'")
+	  	    set statusar = opdealshd.xstatusar("xcrnnum='"+xcrnnum+"'")
+	        if statuscrn .eq. "Confirmed" .or. statusar .eq. "Confirmed"
+			      set #field(add.attrib)="disabled"
+				  set #field(update.attrib)="disabled"
+		    	  set #field(delete.attrib)="disabled"
+    		  end if
+			  if opdealshd.xstatus("xcrnnum='"+xcrnnum+"'") .ne. "Open" 
+			      set #field(add.attrib)="disabled"
+				  set #field(update.attrib)="disabled"
+		    	  set #field(delete.attrib)="disabled"
+    		  end if
+			  
+			  
+			if opdealshd.xsubcat("xcrnnum='"+xcrnnum+"'") .eq. "Auto Gas" 
+				set #field(xitem.pick)="xitemsubcat1"
+			else if opdealshd.xsubcat("xcrnnum='"+xcrnnum+"'") .eq. "Bulk LPG" 
+				set #field(xitem.pick)="xitemsubcat2"
+			else if opdealshd.xsubcat("xcrnnum='"+xcrnnum+"'") .eq. "LPG Cylinder" 
+				set #field(xitem.pick)="xitemsubcat3"	
+			end if
+	   	  end event 
+	    end field
+
+        field add
+          event before
+		    set xdiscdet=0
+		    double crate = #sesql("select xrate from caitemprice where xitem='"+xitem+"' and xdateeff<=cast('"+#date+"' as date) and xdateexp>=cast('"+#date+"' as date) and zactive='1' and zid='"+#id+"'")
+			set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+			double vatrate = caitem.xvatrate("xitem='"+xitem+"'")
+			set cusvatrate = cacusprice.xvatrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+			double ifnoxrate = #sesql("select top(1)xrate from caitemprice where xitem='"+xitem+"' and '"+#date+"' between xdateeff and xdateexp and zid='"+#id+"' and zactive='1' order by xdateeff desc")
+			set subcat=#sesql("select xsubcat from caitem where zid='"+#id+"' and xitem='"+xitem+"'")
+			set xunit=caitem.xunitsel("xitem='"+xitem+"'")
+		    // set ordernum=opdealshd.xordernum("xcrnnum='"+xcrnnum+"'")
+		  	// set xassetitem=opdodetail.xassetitem("xdornum='"+ordernum+"' and xrow='"+xdocrow+"'")
+		  	set xassetitem=caitem.xassetitem("xitem='"+xitem+"'")
+			// set xratedeposit=opdodetail.xratedeposit("xdornum='"+ordernum+"' and xrow='"+xdocrow+"'")
+			if xrate == 0
+			set xrate=crate
+			set xvatrate=vatrate
+			else if xrate>rate .and. rate<>0
+			set xrate=rate
+			set xvatrate=cusvatrate
+			else if xrate == 0
+				set xrate=ifnoxrate
+			end if
+			
+			if xqtyord < 0.0001
+              error "Cannot Proceed -- Please Add Quantity"
+			else if xrate  == 0.00 .and. rate  == 0.00 
+				error "Cannot Proceed -- Zero rate Is Not Allowed ! "
+            else if xvatrate == 0
+              error "Cannot Proceed -- Please Set VAT Rate"
+			else if opdealshd.xstatuscrn("xcrnnum='"+xcrnnum+"'") .eq. "Confirmed"
+				error "Cannot Proceed -- Already Confirmed"
+            else if opdealshd.xsubcat("xcrnnum='"+xcrnnum+"'") .ne. subcat
+				error "Cannot Proceed -- Invalid Item"
+            else
+			set xlineamt=xrate*xqtyord
+            end if
+          end event
+          event after
+
+          set temp = #spsql(sp_validateAfterDetailDLC,#id,#user,xcrnnum,xrow,xqtyord,xrate,xvatrate,xitem)
+		  set xitem=''
+		  set xrate=''
+		  set xvatrate=''
+		  set xqtyord=''
+		  set xdesc=''
+		  set xrow=''
+		  // action Show
+          end event
+        end field
+
+        field update
+          event before
+	    //*************IM STOCK TABLE 
+  	      double qty
+	      double xoldqty
+	      double xoldbonus
+	      set xdiscdet=0
+			double crate = #sesql("select xrate from caitemprice where xitem='"+xitem+"' and xdateeff<=cast('"+#date+"' as date) and xdateexp>=cast('"+#date+"' as date) and zactive='1' and zid='"+#id+"'")
+			set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+			double vatrate = caitem.xvatrate("xitem='"+xitem+"'")
+			set cusvatrate = cacusprice.xvatrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+			double ifnoxrate = #sesql("select top(1)xrate from caitemprice where xitem='"+xitem+"' and '"+#date+"' between xdateeff and xdateexp and zid='"+#id+"' and zactive='1' order by xdateeff desc")
+		
+			set xunit=caitem.xunitsel("xitem='"+xitem+"'")
+			set xassetitem=caitem.xassetitem("xitem='"+xitem+"'")
+	      set xoldqty=#sql("select xqtyord from opdealsdt where xcrnnum='"+xcrnnum+"' and xrow="+xrow+" and xitem='"+xitem+"'")
+	      set xoldbonus=#sql("select xqtybonus from opdealsdt where xcrnnum='"+xcrnnum+"' and xrow="+xrow+" and xitem='"+xitem+"'")
+	      set qty=xoldqty+xoldbonus
+	      set xqtybonus=0
+		  
+		  if xrate == 0
+			set xrate=crate
+			set xvatrate=vatrate
+			else if xrate == 0 .and. xrate>rate .and. rate<>0
+			set xrate=rate
+			set xvatrate=cusvatrate
+			else if xrate == 0
+				set xrate=ifnoxrate
+			end if
+		  
+		  if xqtyord < 0.0001
+              error "Cannot Proceed -- Please Add Quantity"
+		  else if xpkay .ne. xitem
+              error "Cannot Proceed -- Please Show First!"
+          else if xrate  == 0.00 .and. rate  == 0.00 
+				error "Cannot Proceed -- Zero rate Is Not Allowed ! "
+          else if xvatrate == 0
+              error "Cannot Proceed -- Please Set VAT Rate"
+		  else if opdealshd.xstatuscrn("xcrnnum='"+xcrnnum+"'") .eq. "Confirmed"
+			  error "Cannot Proceed -- Already Confirmed"
+		  end if
+	    //****************END*************
+
+          end event
+          event after
+            set temp = #spsql(sp_validateAfterDetailDLC,#id,#user,xcrnnum,xrow,xqtyord,xrate,xvatrate,xitem)
+           // action Show
+          end event
+        end field
+
+        field delete
+          event before
+            set crnnum = xcrnnum
+            set row = xrow
+            double xqtyord = xqtyord
+            double xrate = xrate
+            double xvatrate = xvatrate
+            set item = xitem
+          end event
+          event after
+		  set temp = #spsql(sp_validateAfterDetailDLC,#id,#user,xcrnnum,xrow,xqtyord,xrate,xvatrate,xitem)
+//            action Show
+          end event
+        end field
+
+        field xdesc
+          event before
+            set xdesc = ""+caitem.xdesc("xitem='"+xitem+"'")
+          end event
+        end field
+
+        embed onsubmit="return submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        var result
+        function clicked(b){
+          button=b.value
+        }
+        function submitit(form){
+          result = true
+          if (button=="Return"){
+            form.screen.value = "opdealshd"
+            form.searchbutton.value = "Find xcrnnum=?"
+          }
+          return result
+        }
+        function pickItem(link,rate,vat){
+		  if (navigator.appName.indexOf("Netscape") >= 0){
+           document.one.xitem.value=link.text
+            document.one.xrate.value=rate.text
+            document.one.xvatrate.value=vat.text
+          }else{
+            document.one.xitem.value=link.innerText
+            document.one.xrate.value=rate.innerText
+            document.one.xvatrate.value=vat.innerText
+          }
+          return false
+        }
+
+        </script>
+     end jscript
+
+
+end screen

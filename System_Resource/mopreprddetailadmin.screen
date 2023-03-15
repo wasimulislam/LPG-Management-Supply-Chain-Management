@@ -1,0 +1,204 @@
+screen mopreprddetailadmin
+     sidebar list one
+     sections form one,  jscript myscript
+
+	
+     list one
+        caption "Required Component List For: "+xbatch
+        table modetail
+        order xbatch,xrow
+        fixed xbatch
+        rows 50
+        objects xrow attrib(link "login?screen=mopreprddetailadmin&command=Show&xbatch=?&xrow=?"), ~
+                xitem, desc equals((select xdesc from caitem where zid=modetail.zid and xitem=modetail.xitem)), xwh, ~
+                xqtyreq,unit equals((select xunitsel from caitem where zid=modetail.zid and xitem=modetail.xitem))
+
+
+        headers "Line No","Component Code","Description","Store","Required Qty","Unit"
+     end list
+
+     form one
+        caption "Required Components For <br> Pre-Processing Update: "+xbatch
+        table modetail
+        order xbatch,xrow
+        fixed xbatch
+        pstyle 3
+        return "login"
+        layout 2
+        objects Add,Update,Delete,Show,Clear,Complete,"<p>",~
+                xrow attrib(row 0 1),unit,xitem,~
+				xdesc,xqtyreq,xpercent,xamount,xstype,xwh,xwhdesc, xlong,xavail display(hide),xlineamt display(hide)
+					
+        embed onsubmit="return submitit(this)"
+		
+		
+		field xstype
+			caption Component Type
+			display const
+		end field
+		
+        field xrow
+         event after
+			if moheader.xstatusmor("xbatch='"+xbatch+"'") .eq. "Completed" .or. moheader.xstatus("xbatch='"+xbatch+"'") .ne. "Open" 
+				set #field(add.attrib)="disabled"
+				set #field(update.attrib)="disabled"
+				set #field(delete.attrib)="disabled"
+				set #field(xitem.display)="constant"
+				set #field(xqtyreq.display)="constant"
+				set #field(xpercent.display)="constant"
+				set #field(xamount.display)="constant"
+				set #field(xwh.display)="constant"
+				set #field(xlong.display)="constant"
+			end if
+          end event
+        end field
+		
+		field xwh
+			caption Store
+			//default "08"
+			default #wh
+		end field
+		
+		field unit
+			attrib local
+			display const
+			caption Unit
+			event after
+				set unit=caitem.xunit("xitem='"+xitem+"'")
+			end event
+		end field
+		
+		field xwhdesc
+			attrib local
+			display const
+			caption Store Name
+			event after
+				set xwhdesc=branchview.xlong("xcode='"+xwh+"'")
+			end event
+		end field
+		
+		field xdum
+			attrib local
+			display const
+			caption 
+		end field
+		
+        field xqtyreq
+			caption Required For Production
+			width 22
+		end field
+
+		field xpercent
+			caption Percentage of Raw Material Value
+		end field
+		
+		field xitem
+			caption Component Code
+		end field
+
+        field xdesc
+          attrib local
+          display const
+          event after
+            set xdesc = caitem.xdesc("xitem = '"+xitem+"'")
+          end event
+        end field
+		
+		field xamount
+			caption Fixed Value
+		end field
+
+        field xlong
+          width 60
+		  height 1
+		  column 2
+        end field
+
+        field Add
+		event before
+		set xstype=caitem.xgitem("xitem='"+xitem+"'")
+		set xavail = 0
+		set item=#sql("select xitem from modetail where xbatch='"+xbatch+"' and xitem='"+xitem+"'")
+		if xitem .eq. ""
+			error "Please select Item!"
+		else if xqtyreq < 0.001
+			error "Qty must be greater than 0!"
+		else if item .eq. xitem
+			error "This item is already added!"
+		end if
+		end event
+          event after
+           	//set temp = #spsql(zabsp_MO_validateAfterDetailMO,#id,#user,xbatch,xorderrow,xitem,xqty,xrow,xpercent)
+			action show
+          end event
+        end field
+
+        field update
+		event before
+		set xstype=caitem.xgitem("xitem='"+xitem+"'")
+		set item=#sql("select xitem from modetail where xbatch='"+xbatch+"' and xitem='"+xitem+"'")
+		double row= #sql("select xrow from modetail where xbatch='"+xbatch+"' and xitem='"+xitem+"'")
+		if xitem .eq. ""
+			error "Please select Item!"
+		else if xqtyreq < 0.001
+			error "Qty must be greater than 0!"
+		else if item .eq. xitem .and. xrow <> row
+			error "This item is already added!"
+		end if
+		end event		
+          event after
+           	//set temp = #spsql(zabsp_MO_validateAfterDetailMO,#id,#user,xbatch,xorderrow,xitem,xqty,xrow,xpercent)
+			action show
+          end event
+        end field
+
+        field delete
+          event before
+			set batch=xbatch
+			set orderrow = xorderrow
+			set item = xitem
+			set qty = xqty
+			set row = xrow
+			set percent = xpercent
+          end event
+          event after
+           	//set temp = #spsql(zabsp_MO_validateAfterDetailMO,#id,#user,batch,orderrow,item,qty,row,percent)
+//			action show
+          end event
+        end field
+
+
+        field Complete
+          embed onclick="clicked(this)"
+        end field
+
+
+
+end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var but
+        var result
+
+        function clicked(b){
+          but = b.value
+        }
+        function submitit(form){
+          result = true
+          if (but == "Complete"){
+            form.screen.value = "mopreprdheaderadmin"
+            form.searchbutton.value = "Find xbatch=?"
+          }
+          return result
+        }
+
+        </script>
+     end jscript
+
+end screen
+
+
+
+

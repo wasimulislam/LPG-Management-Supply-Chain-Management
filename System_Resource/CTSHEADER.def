@@ -1,0 +1,22 @@
+product ZAB ERP
+
+table CTSHEADER
+  caption "CTS Order Header"
+  columns ztime,zutime,zauserid,zuuserid,zid,xitem,xitem2,xitem3,xitem4,xitem5,xitem6,xcus,~
+          xdornum,xdocnum,xdate,xtruckno,xplantno,truckStatusId,productCode1,productCode2,productCode35kg22mm,~
+		  pC1FilledQuantity,pC1EmptyQuantity,pC1SystemQuantity,productCode35kg20mm,productCode45kg22mm,productCode45kg20mm,~
+		  pC2FilledQuantity,pC2EmptyQuantity,pC2SystemQuantity,pc35kg22mm_filled_quantity,pc35kg22mm_empty_quantity,pc35kg22mm_system_quantity,pc35kg20mm_filled_quantity,~
+		  pc35kg20mm_empty_quantity,pc35kg20mm_system_quantity,pc45kg22mm_filled_quantity,pc45kg22mm_empty_quantity,pc45kg22mm_system_quantity,pc45kg20mm_filled_quantity,~
+		  pc45kg20mm_empty_quantity,pc45kg20mm_system_quantity,xsync,xcusold,xiscomplete,order_detail_id,order_main_id 
+
+		  
+  primary key zid, xdornum
+  foreign key
+        zid references zbusiness.zid
+        
+  end foreign key
+
+  list xdesc,xstype
+
+end table
+

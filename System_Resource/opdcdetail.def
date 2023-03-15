@@ -1,0 +1,20 @@
+product ZAB ERP
+
+table opdcdetail
+  caption "Delivery Chalan Detail"
+  columns ztime,zutime,zid,zauserid,zuuserid,~
+          xdocnum,xdocrow, xitem,~
+          xqtydoc,xdornum,xordernum,xdorrow,xdate,xorderrow,xunit,xunitsel,xrate,xlineamt,xnote,xretqty,xqtytr,~ 
+		  xvatamt,xvatrate,xcost,xqtybonus,xtornum,xavail,xref,xqtytol,xbnprintstatus,xlong,xqtycom,xstatus,xassetitem,xratedeposit,xpreparer
+		  
+
+
+  primary key zid,xdocnum,xdocrow
+
+  foreign key
+        zid references zbusiness.zid
+        zid,xdocnum references opdcheader.zid,xdocnum
+        zid,xitem references caitem.zid,xitem
+  end foreign key
+
+end table

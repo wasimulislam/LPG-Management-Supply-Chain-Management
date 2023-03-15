@@ -1,0 +1,363 @@
+screen imtordetaildlrreq
+
+     sidebar list one
+     sections  form one, jscript myscript
+
+    list one
+        caption "<br><center><b>"SO Detail List"</b>"
+        table imtordetail
+        order xtornum,xrow desc
+        fixed xtornum
+        rows 10
+        objects ~
+        xrow,~
+        xitem attrib(link "login?screen=imtordetaildlrreq&command=Show&xtornum=?&xrow=?"),~
+		desc equals((select xdesc from caitem where zid=imtordetail.zid and xitem=imtordetail.xitem)),~
+        xqtyreq//xrate,,xvatrate,xlineamt
+
+        headers "Serial No","Product ID","Description","Quantity Ordered"//,"Estimated Price","VAT Rate","Line Amount"
+		//totals "Total","",""//,"",sum,sum
+     end list
+
+	 
+
+     form one
+        caption "Sales Order Detail For <br>  "+xtornum
+        table imtordetail
+        primarykey xtornum,xrow
+        order xtornum,xrow
+        fixed xtornum
+        return "login"
+        layout 2
+        pstyle 3
+        objects Add,Update,Delete,*next,*next,*next,Show,Clear,~
+              *next,*next,*next,Top,Previous,Next,Bottom,Return,"<p>",~  //Qty Add,
+				xrow attrib(row 0 1),xunit display(const),~
+				xitem,xqtyreq,xstatustag,~
+				xdesc,~
+				xdphqty display(hide),xrate display(hide),xvatrate display(hide) ,~
+				xlineamt display(hide),xqtyalc display(hide),xqtyord display(hide)
+
+ 
+	field xitem
+	event before
+	if imtorheader.xsubcat("xtornum='"+xtornum+"'") .eq. "Auto Gas" 
+		set #field(xitem.pick)="xitemsubcat1"
+	else if imtorheader.xsubcat("xtornum='"+xtornum+"'") .eq. "Bulk LPG" 
+		set #field(xitem.pick)="xitemsubcat2"
+	else if imtorheader.xsubcat("xtornum='"+xtornum+"'") .eq. "LPG Cylinder" 
+		set #field(xitem.pick)="xitemsubcat3"	
+	end if
+	            
+    if imtorheader.xstatustor("xtornum='"+xtornum+"'") .eq. "Approved"  .or. imtorheader.xstatustor("xtornum='"+xtornum+"'") .eq. "Applied" .or. imtorheader.xstatustor("xtornum='"+xtornum+"'") .eq. "Recommended" .or. imtorheader.xstatustor("xtornum='"+xtornum+"'") .eq. "DC Created" .or. imtorheader.xstatustor("xtornum='"+xtornum+"'") .eq. "Partial DC Created" .or. imtorheader.xstatustor("xtornum='"+xtornum+"'") .eq. "Dismissed" .or. imtorheader.xstatuslock("xtornum='"+xtornum+"'") .eq. "Lock" 
+				set #field(add.attrib)="disabled"
+				set #field(delete.attrib)="disabled"
+				set #field(update.attrib)="disabled"
+    end if
+	
+	end event
+ 
+	end field
+	
+	
+	field xstatustag
+	caption Status
+	display const
+	end field
+ 
+ 	
+ 
+ 	field xlineamt
+      column 2
+        //display const
+        caption Line Amount With VAT
+        event after
+
+        end event
+      end field
+	
+
+	  
+	  
+ 
+	field xrow
+
+          event after
+		 // set #field(xrow.display)="const"
+            set status = imtorheader.xstatustor("xtornum='"+xtornum+"'")
+
+          end event
+        end field
+
+ 
+	field delete
+
+          event after
+		 set xitem=""
+		 set xrow=0
+		 set xqtyreq=0
+		 set xrate=0
+		 
+          end event
+        end field
+
+ 
+        field xdesc
+          caption Product Name
+          attrib local
+          display const
+		  column 2
+          event after
+            set xdesc=caitem.xdesc("xitem='"+xitem+"'")
+          end event
+        end field
+		
+	field xrate
+		  event before
+		  double drate=0.00
+		  double xrate=0.00
+		    set drate = caitem.xdealerp("xitem = '"+xitem+"'")
+			set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+			set cus=imtorheader.xcus("xtornum='"+xtornum+"'")	
+			set gcus = cacus.xgcus("xcus='"+cus+"'")
+			if gcus .eq. "Rebate"
+				 set #field(xrate.caption)="Trade Price"
+			else
+				set #field(xrate.caption)= <font style="color:green;font-weight:bold;">"Rate :"
+			end if 
+			if drate>rate .and. rate<>0
+			set #field(xrate.caption)=<font style="color:orange;font-weight:bold;">"Special Rate :"
+			end if
+		  end event
+		  
+		  event after
+		  if imtordetail.xrate("xtornum='"+xtornum+"' and xitem='"+xitem+"'") == 0 
+		   set xrate = caitem.xdealerp("xitem = '"+xitem+"'")
+		   end if
+		  end event
+	end field	
+		
+		
+	  	
+    field add
+        event before
+		double totamt = 0.00		
+		double rate=0.00
+		double mrate=0.00
+		double vatrate=0.00
+		double xrated=0.00
+		 double xrate=0.00
+		set xdphqty=xqtyreq
+		set xstatustag = "Manual"
+		
+		//int maxrow=#sesql("select max(xrow) from imtordetail where xtornum='"+xtornum+"' and zid='"+#id+"'")
+		
+		set fwh=imtorheader.xfwh("xtornum='"+xtornum+"'")
+		set xunit = caitem.xunitsel("xitem = '"+xitem+"'")
+        set xrate = #sesql("select isnull(xdealerp,0) from caitem where xitem='"+xitem+"' and zid='"+#id+"'")
+		//caitem.xdealerp("xitem = '"+xitem+"'")
+		set cus=imtorheader.xcus("xtornum='"+xtornum+"'")	
+		set gcus = cacus.xgcus("xcus='"+cus+"'")
+		set item=#sql("select xitem from imtordetail where xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+		set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+		set mrate = caitem.xminrate("xitem='"+xitem+"'")
+		set vatrate = caitem.xvatrate("xitem='"+xitem+"'")
+		set activeitem = caitem.zactive("xitem='"+xitem+"'")		  
+		set exdate = #sesql("select xdateexp from cacusprice where xcus='"+xcus+"' and xitem='"+xitem+"' and zactive='1'")
+		set date = #sql("select xdate from imtorheader where xtornum='"+xtornum+"'")
+
+		// if xrate>rate .and. rate<>0
+		// set xrate=rate
+		// end if
+
+
+		if xrate > 0 .and. gcus .eq. "Rebate"
+			set xrate = xrate
+		else if xrate > 0 .and. gcus .ne. "Rebate"
+		double r1=0.00
+		double r2=0.00
+		double r3=0.00
+		set r1 = 100+vatrate
+		set r2 = 100.0*xrate
+		set r3 = r2 / r1
+		set xrate = r3
+		end if 		
+		  
+		if xqtyreq .lt. 1	
+				error "Please Enter Require Quantity" 
+		end if
+			
+            set fwh=imtorheader.xfwh("xtornum='"+xtornum+"'")
+
+		//*********************Checking Min Price************************/
+		set cat=#sql("select xsubcat from imtorheader where xtornum='"+xtornum+"' ")
+		set itemcat=#sesql("select xsubcat from caitem where xitem='"+xitem+"' and zid='"+#id+"' ")
+		set sostatus=#sesql("select xstatustor from imtorheader where xtornum='"+xtornum+"' ")
+
+		if activeitem .ne. "1"
+			error "Product is inactive!"
+		else if sostatus .eq. "Approved"
+			error "Cannot Proceed -- SO Already Approved"
+		else if itemcat .ne. cat
+			error "Cannot Proceed -- Item Catagory Not Matched with : "+	itemcat	
+		else if item .eq. xitem
+			error "This item is already added!"
+		// else if xrate  == 0.00 .and. rate  == 0.00 .and. mrate == 0.00
+			// error "Cannot Proceed -- Zero rate Is Not Allowed ! "
+		// else if xrate <> 0
+			// if rate <> 0 
+				// if xrate+0.99<rate
+					// error "Cannot Proceed -- Supplied Rate is less then Special Rate :"+rate
+				// end if			
+			// else if xrate+0.99<mrate .or. mrate == 0
+			       // error "Cannot Proceed -- Min rate is 0 or Supplied Rate is less then Min Rate :"+mrate
+			// end if
+		// else if xrate == 0
+				// if rate <> 0 
+				   // set xrate=rate
+				// end if
+			
+		end if	
+
+			set xvatrate = caitem.xvatrate("xitem = '"+xitem+"'")
+	        double totamt = 00.00
+			double xlineamt=0.00
+			set xdphqty = xqtyreq
+		
+			end event
+				event after
+				set temp=#sesql("update imtordetail set xlineamt=case when isnull(xvatrate,0)>0 then ((xrate*xdphqty)+isnull((((xrate*xdphqty)*xvatrate)/100),0)) else ((xrate*xdphqty)+0) end where xtornum='"+xtornum+"' and xitem='"+xitem+"'")	
+			  set temp=#sesql("update imtordetail set xlineamt=round(xlineamt,0) where xtornum='"+xtornum+"' and xitem='"+xitem+"' and xrow='"+xrow+"'")	
+			  set totamt = #sql(double,"select sum(xlineamt) from imtordetail where xtornum='"+xtornum+"'")
+			  
+			  set temp=#sesql("Update imtorheader set xtotamt = '"+totamt+"' where xtornum='"+xtornum+"'")	
+			  
+				set xitem = ""
+				action show	
+				end event
+		  
+        end field
+
+    field update
+		event before
+
+		double totamt = 0.00		
+		double rate=0.00
+		double mrate=0.00
+		double vatrate=0.00
+		double ratec=0.00
+		double xrate=0.00
+		set xdphqty=xqtyreq
+		set xstatustag = "Manual"
+		
+		set fwh=imtorheader.xfwh("xtornum='"+xtornum+"'")
+		set xunit = caitem.xunitsel("xitem = '"+xitem+"'")
+        set xrate = caitem.xdealerp("xitem = '"+xitem+"'")
+		set cus=imtorheader.xcus("xtornum='"+xtornum+"'")	
+		set gcus = cacus.xgcus("xcus='"+cus+"'")
+		set item=#sql("select xitem from imtordetail where xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+		set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+		set mrate = caitem.xminrate("xitem='"+xitem+"'")
+		set vatrate = caitem.xvatrate("xitem='"+xitem+"'")
+		set activeitem = caitem.zactive("xitem='"+xitem+"'")		  
+		set exdate = #sql("select xdateexp from cacusprice where xcus='"+cus+"' and xitem='"+xitem+"' and zactive='1'")
+		set date = #sql("select xdate from imtorheader where xtornum='"+xtornum+"' ")
+		double inhand = #sql(double,"select xavail from imstock where xwh='"+fwh+"' and xitem='"+xitem+"'")
+		
+		// if xrate>rate .and. rate<>0
+		// set xrate=rate
+		// end if
+		
+		set rowitem=#sesql("select xitem from imtordetail where xtornum='"+xtornum+"' and xrow='"+xrow+"' and zid='"+#id+"'")
+		if rowitem .ne. xitem
+			error "Please Show First"
+		end if
+		
+		if xrate > 0 .and. gcus .eq. "Rebate"
+			set xrate = xrate
+		else if xrate > 0 .and. gcus .ne. "Rebate"
+		double r1
+		double r2 
+		double r3 
+		set r1 = 100+vatrate
+		set r2 = 100.0*xrate
+		set r3 = r2 / r1
+		set xrate = r3
+		end if 	
+
+
+		//*********************Checking Min Price************************/
+		set cat=#sql("select xsubcat from imtorheader where xtornum='"+xtornum+"' ")
+		set itemcat=#sesql("select xsubcat from caitem where xitem='"+xitem+"' and zid='"+#id+"' ")
+		if activeitem .ne. "1"
+			error "Product is inactive!"
+		else if itemcat .ne. cat
+			error "Cannot Proceed -- Item Catagory Not Matched with : "+	itemcat
+		// else if xrate <> 0
+			// if rate <> 0 //.and. #sub(date,0,10) .lt. #sub(exdate,0,10)
+				// if xrate+0.99<rate
+					// error "Cannot Proceed -- Supplied Rate is less then Special Rate :"+rate
+				// end if			
+		    // else if xrate+0.99<mrate .or. mrate == 0
+			       // error "Cannot Proceed -- Min rate is 0 or Supplied Rate is less then Min Rate :"+mrate
+			// end if		
+		// else if xrate == 0
+				// if rate <> 0 
+				   // set xrate=rate
+				// end if
+		end if		
+
+					double totamt = 00.00
+					set xlineamt=xrate*xqtyreq
+
+
+				end event				
+				event after
+				
+				
+			  set temp=#sesql("update imtordetail set xlineamt=case when isnull(xvatrate,0)>0 then ((xrate*xdphqty)+isnull((((xrate*xdphqty)*xvatrate)/100),0)) else ((xrate*xdphqty)+0) end where xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+			  
+			set temp=#sesql("update imtordetail set xlineamt=round(xlineamt,0) where xtornum='"+xtornum+"' and xitem='"+xitem+"' and xrow='"+xrow+"'")	
+              set totamt = #sql(double,"select sum(xlineamt) from imtordetail where xtornum='"+xtornum+"'")
+			  set temp=#sesql("Update imtorheader set xtotamt = '"+totamt+"' where xtornum='"+xtornum+"'")	
+					action show
+				end event
+        end field
+		
+	
+		
+        embed onsubmit="submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+  jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        var result
+        function clicked(b){
+          detail=b.value
+        }
+		
+		window.onload = function() {
+			document.one.xitem.select();
+		}
+        function submitit(form){
+          result = true
+          if (detail=="Return"){
+            form.screen.value = "imtorheaderdlrreq"
+            form.searchbutton.value = "Find xtornum=?"
+          }
+
+          detail = ''
+          return result
+        }
+        </script>
+     end jscript
+
+
+end screen

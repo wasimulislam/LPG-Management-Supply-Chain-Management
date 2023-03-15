@@ -1,0 +1,852 @@
+screen opdodetail
+
+     sidebar list three,  list one //,list inv list two,list sodet,
+     sections form one,  jscript myscript
+	 
+
+	 
+	 list three
+        caption "<center><b>"DC Detail List For :"</b>"+xtornum
+        table opdcdetailview
+		maxwidth 530
+		order xtornum
+        fixed xtornum
+		select "(xqtydoc-xqtyord)>0 and xstatusdoc='Confirmed' and xstatusord<>'Sold'"
+        rows 10
+        objects ~
+		xdocnum attrib(name xdocnum#),xitem attrib(link "abc" embed onclick="return pickItem(this:xqty#:xdocnum#)"),~
+		desc equals((select xdesc from caitem where zid=opdcdetailview.zid and xitem=opdcdetailview.xitem)),~
+		xqtydoc,(xqtydoc-xqtyord) attrib(name xqty#)//,xqtydoc,xqtyalc,xunit attrib(name xunit#)
+			
+        headers "DC No","Item","Description","Approved Qty","Pending Qty"
+     end list
+	 
+      list one
+      caption "Detail List"
+        table opdodetail
+		maxwidth 530
+        order xdornum,xrow
+        fixed xdornum
+        rows 20
+        objects  xrow,~
+                 xdocnum,xitem attrib(link "login?screen=opdodetail&command=Show&xdornum=?&xrow=?"),~
+				 desc equals((select xdesc from caitem where zid=opdodetail.zid and xitem=opdodetail.xitem)),~
+                xref,xqtyord,xunit,xrate,xlineamt,xvatamt,xdiscdetamt,xnetamt //(xlineamt+xvatamt-xdiscdetamt),xdiscdet,xdiscdetamt,
+
+       // header "Sl. No","Name Of <br>The Product","Product <br>Code","Qty","Bonus <br>Qty","Rate","Special <br>Rate","Vat <br>Amt","TP","Net Amt"//"Disc %","Disc <br>Amt",
+        header "Sl. No","DC No","Product <br> Code","Name Of <br>The Product","Product Description","Qty","Unit","Rate","Regular Price","Vat <br>Amt","Disc <br>Amt","Net Amt"//,"Disc %","Disc <br>Amt"
+		totals "","Totals","","","","","","",sum,sum,sum,sum
+     end list
+
+
+     form one
+      caption "Invoice Detail For<br> "+xdornum
+      table opdodetail
+      primarykey xdornum
+      order xdornum,xrow
+      fixed xdornum
+      return "login"
+      layout 2
+      pstyle 3
+      objects Add,Show,Clear,Update,Delete,Back, Top,Previous,Next, Bottom,"<p>",~//,Packing Detail
+              xrow attrib(row 0 1),xpacking display(const),xcrlimit,xcusname, xitem, xqtyord attrib(readonly),xdesc,xref display(const),xqtybonus display(const),~
+              xrategrn,xrate display(const),cusrate,xbnprintstatus display(hide),xvatamt display(const),xdiscdet display(hide),xdiscdetamt,~
+              xvatrate display(hide),xdum,xnetamt display(const),xlineamt display(hide),xlong,xdocrow display(hide),~
+              xeta display(hide),xcost display(hide),xdisctype display(hide),xqtycrn display(hide),xratesys display(hide),xtornum display(hide),xdocnum attrib(readonly)// display(const)
+        
+
+      embed onsubmit="return submitit(this)"
+	  
+
+  field xtornum
+    event after
+    set xtornum=opdoheader.xtornum("xdornum='"+xdornum+"'")
+	set globals(xtornum)=xtornum	
+    end event  
+ end field
+ 	  
+	field xref
+	   caption Product Description
+	   event after
+	   set xref=opdcdetail.xref("xdocnum='"+xdocnum+"' and xitem='"+xitem+"'")
+	   end event
+	end field
+ 	  
+  
+
+  field xcusname
+        attrib local
+        display const
+        caption Customer
+    event after
+    set cusname=opdoheader.xcus("xdornum='"+xdornum+"'")
+    set xcusname = "Code: "cusname+", Name: "+cacus.xorg("xcus='"+cusname+"'")+", Type: "+opdoheader.xpaymentterm("xdornum='"+xdornum+"'")
+    end event  
+ end field
+ 
+ field xdocnum
+	 pick
+        caption  Delivery Chalan No
+ end field
+ 
+ 
+
+  field xcrlimit
+        attrib local
+        display const
+        caption Credit Available
+        event after
+          set paymentterm=opdoheader.xpaymentterm("xdornum='"+xdornum+"'")
+          if paymentterm .eq. "Credit"
+            set cus = opdoheader.xcus("xdornum='"+xdornum+"'")
+              set xcrlimit = cacreditview.xbalance("xcus='"+cus+"'")
+            else 
+              set xcrlimit = 0
+            end if
+          //if crlimit<0
+          //  set xcrlimit=0
+          //end if
+        end event
+      end field
+
+  field xdesc
+        attrib local
+        display const
+        caption Product Name
+        event after
+          set xdesc=caitem.xdesc("xitem='"+xitem+"'")
+        end event
+      end field
+	  
+	  field xratesys
+			//event before
+			//  set xratesys=caitem.xrate("xitem='"+xitem+"'")
+			//end event 
+	  end field
+	  
+	  field cusrate
+        attrib local
+        display const
+        caption <font style="color:green;font-weight:bold;">Customer Rate/Special Rate
+		  event before
+		  // set drate = caitem.xdealerp("xitem = '"+xitem+"'")
+		  set drate = caitem.xdealerp("xitem = '"+xitem+"'")
+		  set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+		  if drate>rate .and. rate<>0
+			set #field(cusrate.caption)=<font style="color:green;font-weight:bold;">"Customer Rate/Special Rate"
+		  end if
+		  
+		  end event	
+        event after
+		set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+          set cusrate=cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+        end event
+      end field
+	  
+	  field xratesys
+			//event before
+			//  set xratesys=caitem.xrate("xitem='"+xitem+"'")
+			//end event 
+	  end field
+	  
+	  
+	  field xrate
+		 event after
+		 
+		 end event
+	  end field
+	  
+	  
+	  
+	  field xrategrn
+	  event before
+	  set drate = caitem.xdealerp("xitem = '"+xitem+"'")
+	  set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+	  set gcus = cacus.xgcus("xcus='"+xcus+"'")
+	  if gcus .eq. "Rebate"
+		 set #field(xrategrn.caption)="Trade Price"
+	  else
+		set #field(xrategrn.caption)=<font style="color:green;font-weight:bold;">"Price Included VAT"
+	  end if 
+
+	  
+	  end event
+	  end field
+
+	  field xdum
+			caption 
+			attrib local
+			display const
+	  end field		  
+
+      field xeta
+        attrib local
+        caption
+        default "0"
+      end field
+	  
+      field xitem
+		pick list xitemstock
+		event before
+			set sonumber=opdoheader.xtornum("xdornum='"+xdornum+"'")
+		set item =xitem
+	if opdoheader.xsubcat("xdornum='"+xdornum+"'") .eq. "Auto Gas" 
+		set #field(xitem.pick)="xitemsubcat1"
+	else if opdoheader.xsubcat("xdornum='"+xdornum+"'")  .eq. "Bulk LPG" 
+		set #field(xitem.pick)="xitemsubcat2"
+	else if opdoheader.xsubcat("xdornum='"+xdornum+"'")  .eq. "LPG Cylinder" 
+		set #field(xitem.pick)="xitemsubcat3"	
+	end if
+		
+		end event
+		
+        event after
+// print opdcheader.xstatusdoc("xdocnum='"+xdocnum+"'")
+
+		set globals(xitem)=xitem	
+		set xdocrow=xrow
+		set xparentitem=xitem
+		set globals(xdocnum)=xdocnum
+		set globals(xdocrow)=xdocrow
+		
+		set globals(xparentitem)=xparentitem		
+          //set globals(xwh)=xwh
+          set status = opdoheader.xstatus("xdornum='"+xdornum+"'")
+          set statusord = opdoheader.xstatusord("xdornum='"+xdornum+"'")
+          set statusar = opdoheader.xstatusar("xdornum='"+xdornum+"'")
+          if opdoheader.xstatus("xdornum='"+xdornum+"'") .ne. "Open" 
+            set #field(add.attrib)="disabled"
+              set #field(update.attrib)="disabled"
+            set #field(delete.attrib)="disabled"
+          end if 
+		  if statusord .eq. "Confirmed" .or. statusar .eq. "Confirmed"
+            set #field(add.attrib)="disabled"
+              set #field(update.attrib)="disabled"
+            set #field(delete.attrib)="disabled"
+          end if
+              if opdoheader.xsumnum("xdornum='"+xdornum+"'") .ne. ""
+              set #field(add.attrib)="disabled"
+              set #field(update.attrib)="disabled"
+              set #field(delete.attrib)="disabled"
+              set #field(Confirm.attrib)="disabled"
+              end if
+//print opdoheader.xpaymentterm("xdornum='"+xdornum+"'") 
+      if opdoheader.xpaymentterm("xdornum='"+xdornum+"'") .eq. "Cash"
+      end if
+	  if opdoheader.xsubcat("xdornum='"+xdornum+"'")  .ne. "LPG Cylinder" 
+             set #field(Packing.attrib)="disabled"
+      end if
+        end event
+      end field
+
+      field xlong
+//        width 70
+		caption Note
+        column 1
+      end field
+
+field add
+	event before
+		set temp = #spsql(sp_validateSoItemDetail,#id,#user,xdornum)
+		double qtybonus=0.00
+		double amountnet
+		// double xrate=0.00
+		
+	double amountnet=0.00
+	
+	set dodate= #sesql("select xdate from opdoheader where xdornum='"+xdornum+"' and zid='"+#id+"'")
+	 double xrate = #sesql("select xrate from caitemprice where xitem='"+xitem+"' and xdateeff<=cast('"+dodate+"' as date) and xdateexp>=cast('"+dodate+"' as date) and zactive='1' and zid='"+#id+"'")
+	
+	set cus = opdoheader.xcus("xdornum='"+xdornum+"'")
+    set sonumber=opdoheader.xtornum("xdornum='"+xdornum+"'")
+	set dcdocnum =xdocnum
+	set sonum = imtordetail.xtornum("xitem='"+xitem+"' and xtornum='"+sonumber+"' ")
+	set xtornum=sonumber
+	set xdocnum=#trim(xdocnum)
+	double dcqty = #sesql("select xqtydoc from opdcdetail where xdocnum='"+xdocnum+"' and xitem='"+xitem+"' and zid='"+#id+"'")
+ 
+		//set xdiscdetamt=0 
+		set xqtybonus=0
+		set xdisctype=""
+		set xqtycrn=0
+		double rate=0.00
+		double mrate=0.00
+		double vatrate=0.00
+		double xvatrate=0.00
+		
+		// set rate=0
+		set wh=opdoheader.xwh("xdornum ='"+xdornum+"'")
+		// set dcstatus=#sql("select xstatusdoc from opdcheader where xtornum='"+xtornum+"' and xdocnum='"+xdocnum+"'")
+		set soitem=#sql("select xitem from imtordetail where xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+		set item=#sesql("select xitem from opdodetail where zid='"+#id+"' and xdornum='"+xdornum+"' and xdocnum='"+xdocnum+"' and xitem='"+xitem+"'")
+		set ref=#sql("select xref from opdodetail where xdornum='"+xdornum+"' and xitem='"+xitem+"' and xref='"+xref+"'")
+		
+		set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+		
+		double mrate = caitem.xminrate("xitem='"+xitem+"'")
+		set vatrate = caitem.xvatrate("xitem='"+xitem+"'")
+		set cusvatrate = cacusprice.xvatrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+		
+		set activeitem = caitem.zactive("xitem='"+xitem+"'")
+		set gcus = cacus.xgcus("xcus='"+xcus+"'")
+		set exdate = #sesql("select xdateexp from cacusprice where xcus='"+xcus+"' and xitem='"+xitem+"' and zactive='1' and zid='"+#id+"'")
+		set date = #sql("select xdate from opdoheader where xdornum='"+xdornum+"'")
+		
+		set statusord = opdoheader.xstatusord("xdornum='"+xdornum+"'")
+		set statuapp = opdoheader.xstatus("xdornum='"+xdornum+"'")
+		
+		double ifnoxrate = #sesql("select top(1)xrate from caitemprice where xitem='"+xitem+"' and '"+#date+"' between xdateeff and xdateexp and zid='"+#id+"' ad zactive='1' order by xdateeff desc")
+			
+		set qtybonus=#sql("select xqtybonus from cacusbonus where xcus='"+cus+"' and xitem='"+xitem+"' and xdateeff<=cast('"+date+"' as date) and xdateexp>=cast('"+date+"' as date) ")
+
+		
+		if xrate>rate .and. rate<>0
+			set xrate=rate
+			set vatrate=cusvatrate
+		else if xrate == 0
+			set xrate=ifnoxrate
+		end if
+		
+		// if vatrate>cusvatrate .and. cusvatrate<>0
+			// set vatrate=cusvatrate
+		// end if
+		
+		if xrategrn > 0 .and. gcus .eq. "Rebate"
+			set xrate = xrategrn
+		else if xrategrn > 0 .and. gcus .ne. "Rebate"
+			double r1
+			double r2 
+			double r3 
+			double r1 = 100+vatrate
+			double r2 = 100.0*xrategrn
+			double r3 = r2 / r1
+			set xrate = r3
+		end if 
+	
+		// if xrategrn == 000
+			// set xrate = 0
+		// end if
+		////*********************Checking Min Price************************/
+		set cat=#sql("select xsubcat from opdoheader where xdornum='"+xdornum+"' ")
+		set itemcat=#sesql("select xsubcat from caitem where xitem='"+xitem+"' and zid='"+#id+"' ")
+
+		set statuapp = opdohfieleader.xstatus("xdornum='"+xdornum+"'")
+		if opdoheader.xstatus("xdornum='"+xdornum+"'") .ne. "Open"
+				error "Cannot Proceed-- Invoice Already "+statuapp +"!"
+		else if activeitem .ne. "1"
+			error "Product is inactive !"
+		else if item .eq. xitem
+			error "Cannot Proceed-- Product Already Added !"						 
+	
+		else if itemcat .ne. cat
+			error "Cannot Proceed -- Item Catagory Not Matched with : "+	itemcat	
+		else if opdcdetailview.xstatusdoc("xtornum='"+xtornum+"' and xdocnum='"+xdocnum+"'") .ne. "Confirmed"
+			error "Cannot Proceed -- DC Not Confirmed"				  
+		else if dcqty <> xqtyord
+			error "Cannot Proceed -- DC Quantity Not Matched!"				  
+	
+		else if xrate  == 0.00 .and. rate  == 0.00 //.and. mrate == 0.00
+			error "Cannot Proceed -- Zero rate Is Not Allowed ! "
+		else if xrate <> 0
+			if rate <> 0 //.and. #sub(date,0,10) .lt. #sub(exdate,0,10)
+				if xrate+0.99<rate
+					error "Cannot Proceed -- Supplied Rate is less then Special Rate :"+rate
+				end if			
+			    else if xrate+0.99<mrate .or. mrate == 0
+			       error "Cannot Proceed -- Min rate is 0 or Supplied Rate is less then Min Rate :"+mrate
+			    end if
+		else if xrate == 0
+				if rate <> 0 //.and. #sub(date,0,10) .lt. #sub(exdate,0,10)
+				   set xrate=rate
+				end if
+		
+		end if	
+		double xlineamt=0.00
+		set xref=opdcdetail.xref("xdocnum='"+xdocnum+"' and xitem='"+xitem+"'")
+		//// **************** CHECKING ITEM BALANCE ****************
+	  set date=#sql("select xdate from opdoheader where xdornum='"+xdornum+"'")
+	  set wh=opdoheader.xwh("xdornum ='"+xdornum+"'")
+	  end event
+
+    event after
+
+			set temp=#sql("update opdodetail set xlineamt=xrate*xqtyord where xdornum='"+xdornum+"'")
+			set temp=#sesql("update opdcdetail set xstatus='Sold' where xdocnum='"+xdocnum+"' and xitem='"+xitem+"' and zid='"+#id+"'")
+
+			set date=#sql("select xdate from opdoheader where xdornum='"+xdornum+"'")
+			set cus = opdoheader.xcus("xdornum='"+xdornum+"'")
+	////	set qtybonus = cacusbonus.xqtybonus("xcus='"+cus+"' and xitem='"+xitem+"' and xdateeff<='"+date+"' and xdateexp>='"+date+"'")
+		
+			set temp = #spsql(zabsp_DoBoQty,#id,#user,wh,xdornum,xrow,xitem)
+			if qtybonus > 0
+			
+				set temp = #spsql(zabsp_CusBonusQty,#id,#user,wh,xdornum,xrow,xitem)
+			end if
+			////set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,"add")
+			set temp = #spsql(zab_sp_giftitem,#id,xdornum,xitem,date,xqtyord,#user,wh,"Add")
+			set sp = opdoheader.xsp("xdornum='"+xdornum+"'")
+			set custype = cacus.xpaymentterm("xcus='"+cus+"'")
+			set lineamt = #sql(double,"select sum(xnetamt) from opdodetail where xdornum='"+xdornum+"'")
+			double ntamt=0.00
+			
+			if custype .eq. "Credit"
+			 set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"add")
+				if cacus.xallowcrinv("xcus='"+xcus+"'") .eq. "No"
+					set invtoinv = cacus.xinvtoinvcr("xcus='"+xcus+"'")
+					if invtoinv .eq. "No"
+						set bal = cacreditview.xbalance("xcus='"+cus+"'")
+						if  bal<0
+							print "<font size=+2 color=red>Cannot Proceed -- Credit Limit Exceeds"//, Available Limit "+bal
+							set temp = #sql("delete from opdodetail where xdornum='"+xdornum+"' and xrow="+xrow)
+						else if invtoinv .eq. "Yes"
+							set prime = #sql("select xbalprime from arhed where xcus='"+xcus+"'")
+							if prime > 0
+								error "Cannot Proceed -- Invoice To Invoice Credit Limit Exceeds  "+bal 
+							end if
+						end if
+					end if
+				end if
+				set temp = #spsql(zab_sp_giftitem,#id,xdornum,xitem,date,xqtyord,#user,wh,"Add")
+				set temp = #spsql(zabsp_DoBoQty,#id,#user,wh,xdornum,xrow,xitem)
+				if qtybonus > 0
+					set temp = #spsql(zabsp_CusBonusQty,#id,#user,wh,xdornum,xrow,xitem)
+				end if
+				set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"add")//--
+			end if 
+		
+        set gcus = cacus.xgcus("xcus='"+cus+"'")
+        if gcus .eq. "Doctor/Chemist" 
+			set bal = cacreditspview.xbalance("xsp='"+sp+"'")
+			if bal<0
+				print "<font size=+2 color=red>Cannot Proceed -- Credit Limit Exceeds For DCC / SP"
+				set temp = #sql("delete from opdodetail where xdornum='"+xdornum+"' and xrow="+xrow)
+			end if
+			set temp = #spsql(zab_sp_giftitem,#id,xdornum,xitem,date,xqtyord,#user,wh,"Add")
+			set temp = #spsql(zabsp_DoBoQty,#id,#user,wh,xdornum,xrow,xitem)
+			if qtybonus > 0
+				set temp = #spsql(zabsp_CusBonusQty,#id,#user,wh,xdornum,xrow,xitem)
+			end if
+           set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"add")
+        end if 
+		
+			set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"add")
+			set qb= opdodetail.xqtybonus("xdornum='"+xdornum+"' and xrow="+xrow)
+			set ordqty = xqtyord+qb
+			
+		double linamt0=0.00	
+		set linamt0=opdodetail.xlineamt("xrow='"+xrow+"' and xdornum='"+xdornum+"'")
+		if xdiscdetamt >= linamt0
+			set temp = #sql("update opdodetail set xdiscdetamt=0 where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+			set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"update")
+		  //Print  <font style="color:red"> "Cannot Proceed -- Discount Is Greater Than Line Amount ! "		
+		end if
+
+		if xdiscdetamt >= linamt0 .and. linamt0 <>0.0
+			Print  <font style="color:red"> "Cannot Proceed -- Discount Is Greater Than Line Amount ! "	</font>
+		  // error "Cannot Proceed -- Discount Is Greater Than Line Amount ! "
+		end if			
+		set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"update")	
+
+          action show
+
+    end event
+end field
+
+
+
+field show
+event before
+ end event
+ end field
+
+field update
+    event before
+    set temp = #spsql(sp_validateSoItemDetail,#id,#user,xdornum)
+	set xdocnum=#trim(xdocnum)
+	double baldis=0.00
+	double xrate=0.00
+	set baldis=xdiscdetamt
+	set rowitem=#sesql("select xitem from opdodetail where xdornum='"+xdornum+"' and xrow='"+xrow+"' and zid='"+#id+"'")																												 
+	set dodate= #sesql("select cast(xdate as date) from opdoheader where xdornum='"+xdornum+"' and zid='"+#id+"'")
+	 set xrate = #sesql("select xrate from caitemprice where xitem='"+xitem+"' and xdateeff<=cast('"+dodate+"' as date) and xdateexp>=cast('"+dodate+"' as date) and zactive='1' and zid='"+#id+"'")
+	set ref=#sql("select xref from opdodetail where xdornum='"+xdornum+"' and xitem='"+xitem+"' and xrow='"+xrow+"'")
+
+    set sonumber=opdoheader.xtornum("xdornum='"+xdornum+"'")
+	set sonum = imtordetail.xtornum("xitem='"+xitem+"' and xtornum='"+sonumber+"' ")
+	set xtornum=sonumber	
+	set soitem=#sql("select xitem from imtordetail where xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+	double dcqty = #sesql("select xqtydoc from opdcdetail where xdocnum='"+xdocnum+"' and xitem='"+xitem+"' and zid='"+#id+"'")
+	//set doacuqty=#sesql("select xdocnum from opdodetail where xdornum='"+xdornum+"' and xrow='"+xrow+"' and xitem='"+xitem+"' and zid='"+#id+"'")
+	
+		if rowitem .ne. xitem
+				error "Please Show First"
+		else if dcqty <> xqtyord
+				error "Cannot Proceed -- DC Quantity Not Matched!"
+		end if
+
+		set cat=#sql("select xsubcat from opdoheader where xdornum='"+xdornum+"' ")
+		set itemcat=#sesql("select xsubcat from caitem where xitem='"+xitem+"' and zid='"+#id+"' ")
+			//*********************Checking Min Price************************/		
+		double rate=0.00
+		double mrate=0.00
+		double vatrate=0.00
+		double cusvatrate=0.00
+		set item=#sql("select xitem from opdodetail where xdornum='"+xdornum+"' and xitem='"+xitem+"' and xrow<>'"+xrow+"'")
+		set wh=opdoheader.xwh("xdornum='"+xdornum+"'")
+		set rate = cacusprice.xrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+		set mrate = caitem.xminrate("xitem='"+xitem+"'")
+		set vatrate = caitem.xvatrate("xitem='"+xitem+"'")
+		set cusvatrate = cacusprice.xvatrate("xitem='"+xitem+"' and xcus='"+xcus+"' and zactive='1' and xdateeff<='"+#date+"' and xdateexp>='"+#date+"'")
+		
+		set activeitem = caitem.zactive("xitem='"+xitem+"'")
+		set gcus = cacus.xgcus("xcus='"+xcus+"'")
+		set exdate=#sesql("select xdateexp from cacusprice where xcus='"+xcus+"' and xitem='"+xitem+"' and zactive='1' and zid='"+#id+"'")
+		set date=#sql("select xdate from opdoheader where xdornum='"+xdornum+"'")
+		
+		
+		if xrate>rate .and. rate<>0
+			set xrate=rate
+			set vatrate=cusvatrate
+		end if
+		
+		if xrategrn > 0 .and. gcus .eq. "Rebate"
+			set xrate = xrategrn
+		else if xrategrn > 0 .and. gcus .ne. "Rebate"
+		double r1
+		double r2 
+		double r3 
+		double r1 = 100+vatrate
+		double r2 = 100.0*xrategrn
+		double r3 = r2 / r1
+		set xrate = r3
+		end if 
+		
+		// if xrategrn == 000
+			// set xrate = 0
+		// end if
+		//*********************Checking Min Price************************/
+		set statuapp = opdoheader.xstatus("xdornum='"+xdornum+"'")
+		if opdoheader.xstatus("xdornum='"+xdornum+"'") .ne. "Open"
+				error "Cannot Proceed-- Invoice Already "+statuapp +"!"
+		else if activeitem .ne. "1"
+			error "Product is inactive !"
+		else if itemcat .ne. cat
+			error "Cannot Proceed -- Item Catagory Not Matched with : "+	itemcat	
+		else if xrate  == 0.00 .and. rate  == 0.00 //.and. mrate == 0.00
+			error "Cannot Proceed -- Zero rate Is Not Allowed ! "					
+		else if xrate <> 0
+			if rate <> 0 //.and. #sub(date,0,10) .lt. #sub(exdate,0,10)
+				if xrate+0.99<rate
+					error "Cannot Proceed -- Supplied Rate is less then Special Rate :"+rate
+				end if			
+			    else if xrate+0.99<mrate .or. mrate == 0
+			       error "Cannot Proceed -- Min Rate is 0 or Supplied Rate is less then Min Rate :"+mrate
+			    end if
+		else if xrate == 0
+				if rate <> 0 //.and. #sub(date,0,10) .lt. #sub(exdate,0,10)
+				   set xrate=rate
+				end if
+		end if	
+		
+		//set xrate = caitem.xrate("xitem='"+xitem+"'")
+
+		set titem=#sql("select xtitem from caitem where xitem='"+xitem+"'")
+		if titem .eq. "Gift Item"
+			error "Cannot Update Gift Item"
+		end if
+
+		//******************** credit limit check ********
+
+		double oldqty=0.00
+		double oldqtybn=0.00
+		double oldlnamt=0.00
+		double oldvatamt=0.00
+		double olddiscamt=0.00
+		
+		//double qtybonus
+		set oldqty=#sql("select xqtyord from opdodetail where xdornum='"+xdornum+"' and xrow="+xrow)
+		set oldqtybn=#sql("select xqtybonus from opdodetail where xdornum='"+xdornum+"' and xrow="+xrow)
+		set oldlnamt=#sql("select xlineamt from opdodetail where xdornum='"+xdornum+"' and xrow="+xrow)
+		set oldvatamt=#sql("select xvatrate from opdodetail where xdornum='"+xdornum+"' and xrow="+xrow)
+		set olddiscamt=#sql("select xdiscdet from opdodetail where xdornum='"+xdornum+"' and xrow="+xrow)
+		set oldnetamt=#sql("select xnetamt from opdodetail where xdornum='"+xdornum+"' and xrow="+xrow)
+
+		double xqtybonus=0.00   
+
+
+		// **************** CHECKING ITEM BALANCE ****************
+	  set date=#sql("select xdate from opdoheader where xdornum='"+xdornum+"'")
+	  set wh=opdoheader.xwh("xdornum ='"+xdornum+"'")
+	  set avail = #sql("select sum(xqty*xsign) from imtrn where xwh='"+wh+"' and xitem='"+xitem+"' and cast(xdate as date)<=cast( '"+date+"' as date)")
+	//class oppharma(checkStockInhand({xdornum,update,opdoheader,xrow,xqtyord}))
+   
+		if opdcdetailview.xstatusdoc("xtornum='"+xtornum+"' and xdocnum='"+xdocnum+"'") .ne. "Confirmed"
+			error "Cannot Proceed -- DC Not Confirmed"	
+		end if
+    end event
+	
+	
+    event after
+			set bnprint = #sql("select xbnprintstatus from caitembonus where xitem='"+xitem+"' and xwh='"+wh+"'")
+			set temp = #sql("update opdodetail set xbnprintstatus ='"+bnprint+"' where xitem='"+xitem+"'")
+			
+		set cus = opdoheader.xcus("xdornum='"+xdornum+"'")
+		set date=#sql("select xdate from opdoheader where xdornum='"+xdornum+"'")
+		set qtybonus = cacusbonus.xqtybonus("xcus='"+cus+"' and xitem='"+xitem+"' and xdateeff<='"+date+"' and xdateexp>='"+date+"'")
+		set temp = #spsql(zab_sp_giftitem,#id,xdornum,xitem,date,xqtyord,#user,wh,"Update")
+		set temp = #spsql(zabsp_DoBoQty,#id,#user,wh,xdornum,xrow,xitem)
+		if qtybonus > 0
+			set temp = #spsql(zabsp_CusBonusQty,#id,#user,wh,xdornum,xrow,xitem)
+		end if
+		set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"update")
+
+		set sp = opdoheader.xsp("xdornum='"+xdornum+"'")
+		set custype = cacus.xpaymentterm("xcus='"+cus+"'")
+
+		set lineamt = #sql(double,"select sum(xnetamt) from opdodetail where xdornum='"+xdornum+"'")
+		set lineamt = lineamt-oldnetamt
+		if custype .eq. "Credit"
+			if cacus.xallowcrinv("xcus='"+xcus+"'") .eq. "No"
+  			    set invtoinv = cacus.xinvtoinvcr("xcus='"+xcus+"'")
+				if invtoinv .eq. "No"
+					set bal = cacreditview.xbalance("xcus='"+cus+"'")
+					
+					if bal<0
+						print "<font size=+2 color=red>Cannot Proceed -- Credit Limit Exceeds"//, Available Limit "+bal
+						set temp = #sql("update opdodetail set xqtyord="+oldqty+" where xdornum='"+xdornum+"' and xrow="+xrow)
+						set temp = #sql("update opdodetail set xvatamt="+(oldqty*oldvatamt+" where xdornum='"+xdornum+"' and xrow="+xrow)
+						set temp = #sql("update opdodetail set xdiscamt="+(oldqty*olddiscamt)+" where xdornum='"+xdornum+"' and xrow="+xrow)
+						set temp = #sql("update opdodetail set xlinemat="+(oldqty*xrate)+" where xdornum='"+xdornum+"' and xrow="+xrow)
+					end if
+				else if invtoinv .eq. "Yes"
+					set prime = #sql("select xbalprime from arhed where xcus='"+xcus+"'")
+   					if prime > 0
+						error "Cannot Proceed -- Invoice To Invoice Credit Limit Exceeds  "+bal 
+       				end if
+				end if
+			end if 
+			set temp = #spsql(zab_sp_giftitem,#id,xdornum,xitem,date,xqtyord,#user,wh,"Update")
+			set temp = #spsql(zabsp_DoBoQty,#id,#user,wh,xdornum,xrow,xitem)
+			if qtybonus > 0
+				set temp = #spsql(zabsp_CusBonusQty,#id,#user,wh,xdornum,xrow,xitem)
+			end if
+            set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"update")
+        end if 
+		
+        set gcus = cacus.xgcus("xcus='"+cus+"'")
+        if gcus .eq. "Doctor/Chemist" 
+			set bal = cacreditspview.xbalance("xsp='"+sp+"'")
+			if bal<0
+				print "<font size=+2 color=red>Cannot Proceed -- Credit Limit Exceeds For DCC / SP </font>"
+				set temp = #sql("update opdodetail set xqtyord="+oldqty+" where xdornum='"+xdornum+"' and xrow="+xrow)
+				set temp = #sql("update opdodetail set xvatamt="+(oldqty*oldvatamt+" where xdornum='"+xdornum+"' and xrow="+xrow)
+				set temp = #sql("update opdodetail set xdiscamt="+(oldqty*olddiscamt)+" where xdornum='"+xdornum+"' and xrow="+xrow)
+				set temp = #sql("update opdodetail set xlinemat="+(oldqty*xrate)+" where xdornum='"+xdornum+"' and xrow="+xrow)
+			end if 
+			set temp = #spsql(zab_sp_giftitem,#id,xdornum,xitem,date,xqtyord,#user,wh,"Update")
+			set temp = #spsql(zabsp_DoBoQty,#id,#user,wh,xdornum,xrow,xitem)
+			if qtybonus > 0
+				set temp = #spsql(zabsp_CusBonusQty,#id,#user,wh,xdornum,xrow,xitem)
+			end if
+			set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"update")
+        end if 
+
+			set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"update")
+
+
+        if xqtyord <> oldqty
+			set qb= opdodetail.xqtybonus("xdornum='"+xdornum+"' and xrow="+xrow)
+			set chkqty=oldqty+avail+qb
+			set ordqty = xqtyord+qb
+			//  if avail < ordqty
+			if chkqty < ordqty 
+				print "<font size=+2 color=red>Cannot Proceed -- Available Stock Is: "+avail+"</font>"
+				set temp = #sql("update opdodetail set xqtyord="+oldqty+" where xdornum='"+xdornum+"' and xrow="+xrow)
+				set temp = #sql("update opdodetail set xqtybonus="+oldqtybn+" where xdornum='"+xdornum+"' and xrow="+xrow)
+				set temp = #sql("update opdodetail set xvatamt="+(oldqty*oldvatamt+" where xdornum='"+xdornum+"' and xrow="+xrow)
+				set temp = #sql("update opdodetail set xdiscamt="+(oldqty*olddiscamt)+" where xdornum='"+xdornum+"' and xrow="+xrow)
+				set temp = #sql("update opdodetail set xlinemat="+(oldqty*xrate)+" where xdornum='"+xdornum+"' and xrow="+xrow)
+			else
+				set temp = #spsql(zabsp_DoBoQty,#id,#user,wh,xdornum,xrow,xitem)
+				if qtybonus > 0
+					set temp = #spsql(zabsp_CusBonusQty,#id,#user,wh,xdornum,xrow,xitem)
+				end if
+				set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,"update")
+            end if
+		// else if  avail<=0	
+			// print "<font size=+2 color=red>Cannot Proceed -- Available Stock Is: "+avail+"</font>"
+        end if
+		if xdiscdetamt >= opdodetail.xlineamt("xrow='"+xrow+"' and xdornum='"+xdornum+"'") 
+		set temp = #sql("update opdodetail set xdiscdetamt=0 where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+		
+		set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"update")
+		  Print  "<font style="color:red;"> Cannot Proceed -- Discount Is Greater Than Line Amount !</font>"		
+		end if
+			//	set temp = #sql("update opdodetail set xnetamt=xlineamt-xdiscdetamt+xvatamt where xdornum='"+xdornum+"' and xrow='"+xrow+"'")
+         //set temp = #spsql(sp_validateSoItemDetail,#id,#user,xdornum)
+         		// set temp = #spsql(zabsp_ValidedAfterCylinderUpdate,#id,#user,xrow,xdornum,"update")
+       action show
+    end event
+end field
+
+  field Delete
+    event before
+      set row= xrow
+      set dornum=xdornum
+      set docnum=xdocnum
+        set wh=opdoheader.xwh("xdornum='"+xdornum+"'")
+		set titem=#sql("select xtitem from caitem where xitem='"+xitem+"'")
+		
+        set statuapp = opdoheader.xstatus("xdornum='"+xdornum+"'")
+		
+		if opdoheader.xstatus("xdornum='"+xdornum+"'") .ne. "Open"
+				error "Cannot Proceed-- Invoice Already "+statuapp +"!"
+		else if titem .eq. "Gift Item"
+           error "Cannot Delete Gift Item"
+        end if
+      //if stype .eq. "Stock-N-Sell"  
+          end event
+          event after
+		  set temp=#sesql("update opdcdetail set xstatus='' where xdocnum='"+xdocnum+"' and xitem='"+xitem+"' and zid='"+#id+"'")
+      set date=#sql("select xdate from opdoheader where xdornum='"+xdornum+"'")
+            set temp = #spsql(zab_sp_giftitem,#id,xdornum,xitem,date,xqtyord,#user,wh,"Delete")
+            set temp = #spsql(zabsp_ValidedAfterDetailDO_DC,#id,#user,xrow,xdornum,xdocnum,xtornum,xitem,"update")
+			set temp = #spsql(sp_validateSoItemDetail,#id,#user,dornum)
+      //end if
+    end event
+	event after
+	 set xrate=0.0
+	 set xrategrn=0.0
+	 set xdiscdetamt=0
+	 set xnetamt=0
+	 set xqtyord=0
+	 set xvatamt=0
+	 set xitem=""
+	 set xrow=0
+	 set xdocnum=""
+	end event
+	
+    end field
+
+
+        field Packing Detail
+          embed onclick="clicked(this)"
+        end field
+
+      field Back
+        embed onclick="clicked(this)"
+      end field
+
+end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+	history.pushState(null, null, document.URL);
+	window.addEventListener('popstate', function () {
+		history.pushState(null, null, document.URL);
+	});		
+		
+		
+        var but
+        var result
+
+        function clicked(b){
+          but = b.value
+        }
+        function submitit(form){
+          result = true
+          if (but == "Back"){
+            form.screen.value = "opdoheader"
+            form.searchbutton.value = "Find xdornum=?"
+          }
+		   if (but=="Packing Detail"){
+            form.screen.value = "opdodetailpackage"
+            form.searchbutton.value = ""
+          }
+		  
+          return result
+        }
+     function pickItemso(link,xqtyq){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xitem.value=link.text
+            document.one.xqtyord.value=xqtyq.text
+            document.one.xrow.value=0				
+			//document.one.convertionunit.value=xqtyq.text
+			
+          }else{
+            document.one.xitem.value=link.innerText
+            document.one.xqtyord.value=xqtyq.innerText
+            document.one.xrow.value=0			
+            //document.one.convertionunit.value=xqtyq.innerText
+          }
+          return false
+        }		
+		 function pickItem(link,xqty,xdocnum){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xitem.value=link.text
+            document.one.xdocnum.value=xdocnum.text
+            document.one.xqtyord.value=xqty.text
+            document.one.xrow.value=0				
+            document.one.xrate.value=0				
+			//document.one.convertionunit.value=xqty.text
+			
+          }else{
+            document.one.xitem.value=link.innerText
+            document.one.xqtyord.value=xqty.innerText
+            document.one.xrow.value=0			
+            //document.one.convertionunit.value=xqty.innerText
+          }
+          return false
+        }		
+		
+        // function pickPrice(link,vatamt,cost){
+          // if (navigator.appName.indexOf("Netscape") >= 0){
+            // document.one.xinvnum.value=link.text
+            // document.one.xbalance.value=primebal.text
+            // document.one.xdate.value=date.text
+          // }else{
+            // document.one.xrate.value=link.innerText
+            // document.one.xvatrate.value=vatamt.innerText
+            // document.one.xcost.value=cost.innerText
+            // document.one.xeta.value="1"
+          // }
+          // return false
+        // }
+		
+        // function pickItem1(link,unit,soqty){
+          // if (navigator.appName.indexOf("Netscape") >= 0){
+            // document.one.xitem.value=link.text
+			// document.one.xunit.value=unit.text
+            // document.one.xqtyord.value=soqty.text
+          // }else{
+            // document.one.xitem.value=link.innerText
+			// document.one.xunit.value=unit.innerText
+            // document.one.xqtyord.value=soqty.innerText
+          // }
+          // return false
+        // }
+		 // function pickItem(link,unit,qtypur){
+          // if (navigator.appName.indexOf("Netscape") >= 0){
+            // document.one.xitem.value=link.text
+           // document.one.xunit.value=unit.text
+            // document.one.xqtyord.value=qtypur.text
+          // }else{
+            // document.one.xitem.value=link.innerText
+            //document.one.xunit.value=unit.innerText
+            // document.one.xqtyord.value=qtypur.innerText
+          // }
+          // return false
+        // }
+
+
+		
+		
+        </script>
+     end jscript
+
+end screen
+
+
+
+

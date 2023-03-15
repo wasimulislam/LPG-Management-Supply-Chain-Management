@@ -1,0 +1,48 @@
+product ZAB ERP
+
+table ctsdetailtemp
+  caption "CYLINDER BARCODE Movement Details"
+  columns ztime,zutime,zauserid,zuuserid,zid,xdocnum,xrow,xdornum,xcus,xplantno,xitem,xdesc,xbodycode,productCode1,~
+		  xqty,xsign,xstatus,xtype,xdate,id,order_detail_id,order_main_id,product_code,barcode,operation_type,deviceCode,create_date
+		  
+  
+  // ztime,zutime,zauserid,zuuserid,zid,xitem,xitem2,xitem3,xitem4,xitem5,xitem6,xcus,~
+          // xdornum,xdocnum,xdate,xtruckno,xplantno,truckStatusId,productCode1,productCode2,productCode35kg22mm,~
+		  // pC1FilledQuantity,pC1EmptyQuantity,pC1SystemQuantity,productCode35kg20mm,productCode45kg22mm,productCode45kg20mm,
+		  // pC2FilledQuantity,pC2EmptyQuantity,pC2SystemQuantity,pc35kg22mm_filled_quantity,pc35kg22mm_empty_quantity,pc35kg22mm_system_quantity,pc35kg20mm_filled_quantity,
+		  // pc35kg20mm_empty_quantity,pc35kg20mm_system_quantity,pc45kg22mm_filled_quantity,pc45kg22mm_empty_quantity,pc45kg22mm_system_quantity,pc45kg20mm_filled_quantity,
+		  // pc45kg20mm_empty_quantity,pc45kg20mm_system_quantity,xsync,xcusold,xiscomplete
+		  
+  primary key zid,xdornum,xrow //,xdocnum,xcus,xplantno,xitem,productCode1
+  foreign key
+        zid references zbusiness.zid
+        
+  end foreign key
+
+end table
+
+	// [ztime] [datetime] NULL,
+	// [zutime] [datetime] NULL,
+	// [zauserid] [varchar](50) NULL,
+	// [zuuserid] [varchar](50) NULL,
+	// [zid] [int] NOT NULL,
+	// [xdocnum] [varchar](50) NULL,
+	// [id] [int] NULL,
+	// [xrow] [bigint] IDENTITY(1,1) NOT NULL,
+	// [order_detail_id] [int] NULL,
+	// [order_main_id] [int] NULL,
+	// [product_code] [int] NULL,
+	// [barcode] [int] NULL,
+	// [operation_type] [int] NULL,
+	// [deviceCode] [int] NULL,
+	// [create_date] [varchar](50) NULL,
+	// [xdornum] [varchar](50) NULL,
+	// [xcus] [varchar](50) NULL,
+	// [xplantno] [varchar](50) NULL,
+	// [xitem] [varchar](50) NULL,
+	// [xdesc] [varchar](350) NULL,
+	// [xbodycode] [varchar](1000) NULL,
+	// [xsign] [int] NULL,
+	// [xstatus] [varchar](50) NULL,
+	// [xtype] [varchar](50) NULL,
+	// [xdate] [datetime] NULL,

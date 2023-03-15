@@ -1,0 +1,320 @@
+screen opcrnheaderar
+
+     sidebar list one,list sysvoucher
+     sections form one, jscript myscript
+	 
+	 
+	 list one
+        caption "Pending Sales Return List for Transfer To AR"
+        table opcrnheader
+		dtlengthmenu [100, -1], [100, "All"]
+		dtordering [0,"desc"]
+        order xcrnnum desc
+		select "left(xcrnnum,4)='SLR-' and xstatuscrn='Confirmed' and xstatusar='Open' and xstatus='Approved' "
+		rows 50
+        objects xcrnnum attrib(link "login?screen=opcrnheaderar&command=Show&xcrnnum=?"),~
+                 xdate,xordernum
+				 
+        headers "Sales Return No","Date","Invoice No"
+     end list
+	 
+	 list sysvoucher
+		caption "Generated Voucher For Sales Return : "+xcrnnum
+		table acheader
+		order xvoucher desc
+		select "xstatusjv in ('Posted') and left(xvoucher,4) in ('JV--') and isnull(xlcno,'')='' and xvoucher='"+xvoucher+"'"  // and xpreparer='system.zab'
+		rows 200
+		objects  xvoucher attrib(link "login?screen=acheader&command=Show&xvoucher=?"),~
+				 xdate,xpreparer
+
+   // headers "Line No","Acc Code","Description","Sub Code","Description","Debit","Credit"//,"Amt"
+  end list
+
+
+
+     form one
+        caption "Sales Return (AR & GL Transfer)"
+        table opcrnheader
+        primarykey xcrnnum
+        order xcrnnum desc
+        select "left(xcrnnum,4)='SLR-'"
+        return "login"
+        layout 3
+        pstyle 3
+        objects ~
+               Show,Clear,Top,Previous,Next,Bottom,Transfer_To_AR,"<p>" ,~
+                xcrnnum ,xordernum display(const),xdate display(const),xref display(const),xcus display(hide),xorg display(const),xpaymentterm display(const),~
+				xsubcat display(const),xpaymenttype display(const),~
+              	xsp display(hide),xarea display(const),xsm display(hide),asmname,xterritory display(const),~
+				xdivisionop display(const),xrsm display(hide),dsmname,xtso display(hide),xtsoname,xdiscamt display(const),xamount display(const),xnetamt,~
+                xwh display(const),xbrname,xstatuscrn,xstatusar display(const),xstatus,xtotamt display(hide), ~
+                xait display(hide),xvatamt display(hide),xdisc display(hide),xdiscf display(hide),~
+                xaitamt display(hide),~
+				xpkey attrib(local) display(hide),~
+                xfm display(hide),xpp display(hide),~
+		    	xyear display(hide),xper display(hide),xtype display(hide),~
+				xstatusjv display(const), xvoucher display(const)
+
+	field xpaymenttype
+        caption <font style="color:red;">Invoice Type
+    end field
+	
+	field xref
+		caption Reason
+	end field
+
+	field xitem
+		pick
+	end field 
+
+	field xnote1
+		caption Reject Note
+	end field 
+
+	field xstatuscrn
+		caption Sales Return Status
+	end field  
+
+	field xstatusar
+		caption Receivable Status
+	end field   
+
+	field xstatusjv
+        caption Voucher Status
+    end field 
+	
+	field xvoucher
+        caption Voucher Number
+    end field 
+
+	field xnetamt
+		  attrib local
+		  display const
+		  caption <font size=+1 color=blue>Receivable Amount </font>
+		  event after
+			set xnetamt = xamount-xtotamt+xdiscamt-xvatamt
+		  end event
+     end field
+
+	field show
+		  event after
+          set xpkey=xcrnnum
+		  end event
+    end field    
+
+	field xamount
+		  caption <font size=+1 color=red>Invoice Amount</font>
+    end field
+
+    field xdiscamt
+       // display const
+    end field
+
+    field xdum
+        attrib local
+        caption 
+        display const
+    end field
+	   
+	field xwh
+		caption Warehouse / Store
+        // default ""
+    end field
+
+    field xbrname
+        attrib local
+        caption Warehouse / Store Name
+        display const
+        event after
+          set xbrname=xcodes.xlong("xtype='Branch' and xcode='"+xwh+"'")
+        end event
+    end field
+	   
+	field xstatus
+		caption Approval Status
+	end field 
+
+        field xorg
+		caption Customer Name
+          event after
+          set xorg=cacus.xorg("xcus='"+xcus+"'")
+          end event
+        end field
+
+        field xordernum
+		caption Invoice No
+          pick list opordcrnstore 
+        end field
+		
+		
+		field xtso 
+        caption TSO ID
+		end field
+		
+		field xtsoname
+        attrib local
+        display const
+        caption <font style="color:orange;font-weight:bolder">Territory Sales Officer Name
+        event after
+          set xtsoname=cappo.xname("xsp='"+xtso+"'")+" : "+xtso
+        end event
+      end field
+	  
+	  field xarea
+		caption Area	
+        event after
+        end event
+	  end field 
+		
+		field asmname
+        attrib local
+        display const
+        caption Area Sales Manager Name
+        event after
+          set asmname=cappo.xname("xsp='"+xsm+"'")+" : "+xsm
+        end event
+      end field
+
+		
+		
+		field dsmname
+        attrib local
+        display const
+        caption Divisional Sales Manager Name
+        event after
+          set dsmname=carsm.xname("xrsm='"+xrsm+"'")+" : "+xrsm
+        end event
+      end field
+
+        field xcrnnum
+		width 16
+		pick list xcrnnum
+          event after
+		  //class careports(getReport{opreturnbill;2;in,st;zid,xcrnnum;dornum;Print Return})
+            set globals(xordernum)=xordernum
+            set globals(xcrnnum)=xcrnnum
+			double qtycrn=#sql("select sum(xqtyord) from opcrndetail where xcrnnum='"+xcrnnum+"'")
+     	        if xstatus .ne. "Applied" .or. xstatus .eq. "Recommended"
+		          	set #field(Approve.attrib)="disabled"
+          			set #field(Reject.attrib)="disabled"
+        		  end if
+				if qtycrn > 0
+					set #field(xordernum.display)="const"
+				end if
+				 
+				if opcrnheader.xstatusar("xcrnnum='"+xcrnnum+"'") .ne. "Open"
+					set #field(Transfer_To_AR.attrib)="disabled"
+				else if  opcrnheader.xstatusjv("xcrnnum='"+xcrnnum+"'") .ne. "Open"      			
+					set #field(Transfer_To_AR.attrib)="disabled"
+				end if
+			end event
+        end field
+
+        
+
+        field Transfer_To_AR
+		    event before
+			set cus=opcrnheader.xcus("xcrnnum='"+xcrnnum+"'")
+			set cusg=cacus.xgcus("xcus='"+cus+"'")
+			set cgacc=xcodes.xacc("xtype='Customer Group' and xcode='"+cusg+"'")
+			set cgaccvat=xcodes.xaccvat("xtype='Customer Group' and xcode='"+cusg+"'")
+			set subct=opcrnheader.xsubcat("xcrnnum='"+xcrnnum+"'")
+			set itemgroup=caitem.xgitem("xsubcat='"+subct+"'")
+			set itemgaccroup=caitem.xcatitemacc("xsubcat='"+subct+"'")
+			set accig=xcodes.xacc("xtype='Item Group' and xcode='"+itemgroup+"'")
+			set vatig=xcodes.xaccvat("xtype='Item Group' and xcode='"+itemgroup+"'")
+			// set accari=optoari.xacccr("xgitem='"+itemgroup+"' and xgcus='"+cusg+"'")
+			// set discari=optoari.xaccdr2("xgitem='"+itemgroup+"' and xgcus='"+cusg+"'")
+			set itemcatacc=#sesql("select top 1 xitem from opcrndetail where zid = '"+#id+"' and xcrnnum='"+xcrnnum+"' and xitem in (select xitem from caitem where isnull(xcatitemacc,'')='' )")
+			set accari=#sesql("select isnull((select top 1 isnull(xacccr,'') from optoari where xgcus='"+cusg+"' and xstype='"+itemgaccroup+"' and xgitem='"+itemgroup+"' and xtype='Sales Return' and isnull(xacccr,'')=''),'ok')")
+			set discari=#sesql("select isnull((select top 1 isnull(xaccdr2,'')  from optoari where xgcus='"+cusg+"' and xstype='"+itemgaccroup+"' and xgitem='"+itemgroup+"' and xtype='Sales Return' and isnull(xaccdr2,'')=''),'ok')")
+
+			
+			if opcrnheader.xstatuscrn("xcrnnum='"+xcrnnum+"'") .ne. "Confirmed"
+				error "Cannot Proceed-- Sales Return Not Confirmed!"
+			else if opcrnheader.xstatusar("xcrnnum='"+xcrnnum+"'") .eq. "Confirmed"
+				error "Cannot Proceed-- Already Confirmed!"	
+			else if itemcatacc .ne. ""
+				error "Cannot Proceed-- Account Not Found in Item Category !"	
+			else if cgacc .eq. ""
+				error "Cannot Proceed-- Receivable Account Not Found!"	
+			else if cgaccvat .eq. ""
+				error "Cannot Proceed-- Vat Account(DR) Not Found in Customer Group !"	
+			else if accig .eq. ""
+				error "Cannot Proceed-- Account Not Found in Item Group!"	
+			else if vatig .eq. ""
+				error "Cannot Proceed-- Vat Account(CR) Not Found in Item Group !"	
+			else if accari .ne. "ok"
+				error "Cannot Proceed-- Sales Account Not Found in AR Interface !"	
+			else if discari .ne. "ok"
+				error "Cannot Proceed-- Sales Discount Account Not Found in AR Interface !"	
+			end if
+			
+          	end event
+			event after
+			if opcrnheader.xstatusar("xcrnnum='"+xcrnnum+"'") .ne. "Confirmed"
+		        set temp = #spsql(zabsp_OP_transferOPtoAR,#id,#user,xcrnnum,"opcrnheader")
+			end if
+		  if opcrnheader.xstatusjv("xcrnnum='"+xcrnnum+"'") .ne. "Confirmed"
+				set temp = #spsql(zabsp_OP_transferOPtoGL,#id,#user,xcrnnum,"opcrnheader")
+				set temp = #spsql(zabsp_OP_transferIMtoGL,#id,#user,xcrnnum)
+			end if
+				
+               action show
+			  
+         	 end event
+        end field		
+		
+		
+		  
+		   
+
+        embed onsubmit="return submitit(this)"
+
+        field Details
+          embed onclick="clicked(this)"
+        end field
+
+       field Print_Return
+         embed onclick="clicked(this)"
+        end field
+		
+
+
+     end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var button
+        var result
+//        function changeit(f){
+//          document.one.xexch.style.visibility="hidden"
+//          document.one.xexch.value = "2"
+//        }
+        function clicked(b){
+          button=b.value
+        }
+        function submitit(form){
+          result = true
+          if (button=="Details"){
+            form.screen.value = "opcrndetail"
+            form.searchbutton.value = "Top"
+            //return false
+          }
+          if (button=="Print_Return"){
+           var link =  "login?screen=*crystal+opreturnbill(xcrnnum=Return No)&option=Print+Return&menu=*none*"//&xdornum="+form.xdornum.value+""
+              var width = 240
+              var left = 760
+              if (screen){
+                left = screen.width-width
+             }
+              var param = "toolbar=no,location=yes,directories=0,status=0,menubar=0,scrollbars=1,center=0,alwaysRaised=yes,resizable=yes,height=200,width="+width+",top=0,left="+left
+              window.open(link,"StockStatus",param)
+          }
+          return result
+        }
+        </script>
+     end jscript
+
+end screen

@@ -1,0 +1,29 @@
+product ZAB ERP
+
+table opdealshdappview
+  caption "Dealer Closing Approval View"
+  columns zid,xstaff,xposition,xstatus,xdate
+  primary key zid,xstaff,xposition,xstatus,xdate
+  foreign key
+        zid references zbusiness.zid
+  end foreign key
+
+  sql create view opdealshdappview (zid,xstaff,xposition,xcrnnum,xordernum,xstatus,xdate,xdesignation,xdateapp,xrow)~
+as select a.zid,a.xpreparer,b.xposition,a.xcrnnum,a.xordernum,a.xstatus,a.xdate,'Preparer',~
+	a.xdate,rank() OVER (ORDER BY a.xdate desc,a.xcrnnum) from opcrnheader a join pdmst b on a.zid=b.zid and a.xpreparer=b.xstaff ~
+union all ~
+select a.zid,a.xsignatory1,b.xposition,a.xcrnnum,a.xordernum,a.xstatus,a.xdate,'Signatory 1',a.xsigndate1,rank() OVER (ORDER BY a.xsigndate1 desc,a.xcrnnum) from opcrnheader a join pdmst b on a.zid=b.zid and a.xsignatory1=b.xstaff ~
+union all ~
+select a.zid,a.xsignatory2,b.xposition,a.xcrnnum,a.xordernum,a.xstatus,a.xdate,'Signatory 2',a.xsigndate2,rank() OVER (ORDER BY a.xsigndate2 desc,a.xcrnnum) from opcrnheader a join pdmst b on a.zid=b.zid and a.xsignatory2=b.xstaff ~
+union all ~
+select a.zid,a.xsignatory3,b.xposition,a.xcrnnum,a.xordernum,a.xstatus,a.xdate,'Signatory 3',a.xsigndate3,rank() OVER (ORDER BY a.xsigndate3 desc,a.xcrnnum) from opcrnheader a join pdmst b on a.zid=b.zid and a.xsignatory3=b.xstaff ~
+union all ~
+select a.zid,a.xsignatory4,b.xposition,a.xcrnnum,a.xordernum,a.xstatus,a.xdate,'Signatory 4',a.xsigndate4,rank() OVER (ORDER BY a.xsigndate4 desc,a.xcrnnum) from opcrnheader a join pdmst b on a.zid=b.zid and a.xsignatory4=b.xstaff ~
+union all ~
+select a.zid,a.xsignatory5,b.xposition,a.xcrnnum,a.xordernum,a.xstatus,a.xdate,'Signatory 5',xsigndate5,rank() OVER (ORDER BY a.xsigndate5 desc,a.xcrnnum) from opcrnheader a join pdmst b on a.zid=b.zid and a.xsignatory5=b.xstaff ~
+union all ~
+select a.zid,a.xsignatory6,b.xposition,a.xcrnnum,a.xordernum,a.xstatus,a.xdate,'Signatory 6',a.xsigndate6,rank() OVER (ORDER BY a.xsigndate6 desc,a.xcrnnum) from opcrnheader a join pdmst b on a.zid=b.zid and a.xsignatory6=b.xstaff ~
+union all ~
+select a.zid,a.xsignatory7,b.xposition,a.xcrnnum,a.xordernum,a.xstatus,a.xdate,'Signatory 7',a.xsigndate7,rank() OVER (ORDER BY a.xsigndate7 desc,a.xcrnnum) from opcrnheader a join pdmst b on a.zid=b.zid and a.xsignatory7=b.xstaff
+				  
+end table

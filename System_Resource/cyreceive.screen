@@ -1,0 +1,267 @@
+screen cyreceive
+
+     sidebar list three,one,two,four
+     sections form one, jscript myscript
+	 
+	 
+	 list three
+		caption "Transaction List Without Fully Added Detail "
+        table cybalancelist 
+        order xitem
+		select "xcus ='"+xcl+"' and left(xdocnum,4)='CYRE'"
+        rows 200 
+        objects ~
+		xdocnum attrib(link "login?screen=cyreceive&command=Show&xdocnum=?"), ~
+		xassetitem,assetname equals((select xdesc from caitem where zid=cybalancelist.zid and xitem=cybalancelist.xassetitem)),~
+		org equals((select xorg from cacus where zid=cybalancelist.zid and xcus=cybalancelist.xcus)),~
+		xdate,xqty
+
+       header "Transaction No","Cylinder Code","Cylinder Name","Customer Name","Transaction Date","Quantity"
+		
+     end list
+
+     list one
+		caption "Blance List of "+xitem+("select xfatype from caitem where xitem='"+xitem+"'")
+        table cybalancecus 
+        order xitem
+		select "xcus ='"+xcl+"' and xitem='"+xitem+"'"
+        rows 200
+        objects ~
+		xitem,xcus,abs(xqty)
+
+       header "Cylinder Code","Customer ID","Quantity"
+		
+     end list
+	 
+   list two
+		caption "Receive Transaction List: "+xcus
+        table cytrn 
+        order xdocnum
+		select "xcus ='"+xcl+"' and left(xdocnum,4)='CYRE'"
+        rows 200
+        objects ~
+		xdocnum attrib(link "login?screen=cyreceive&command=Show&xdocnum=?"), ~
+		xassetitem,assetname equals((select xdesc from caitem where zid=cytrn.zid and xitem=cytrn.xassetitem)),~
+		org equals((select xorg from cacus where zid=cytrn.zid and xcus=cytrn.xcus)),~
+		xdate,(xqty*xsign),xstatus
+
+       header "Transaction No","Cylinder Code","Cylinder Name","Customer Name","Transaction Date","Quantity","Status"
+		totals "","Totals","","","",sum,""
+     end list
+	 
+	 list four
+		caption "Transaction List with Sales Order
+        table cytrn 
+        order xdocnum
+		select "xcus ='"+xcl+"' and left(xdocnum,4)='CYRE'"
+        rows 200
+        objects ~
+		xtornum attrib(link "login?screen=cyreceive&command=Show&xtornum=?"), ~
+		xdocnum,xassetitem,assetname equals((select xdesc from caitem where zid=cytrn.zid and xitem=cytrn.xassetitem)),~
+		org equals((select xorg from cacus where zid=cytrn.zid and xcus=cytrn.xcus)),~
+		xdate,xstatus
+
+       header "Sales Order No","Transaction No","Cylinder Code","Cylinder Name","Customer Name","Transaction Date","Status"
+		totals "","","Totals","","","",""
+     end list
+	 
+   
+
+
+     form one
+      //maxwidth 700
+      caption "Cylinder Receive From Customer"
+      table cytrn
+      primarykey xdocnum
+      order xdocnum desc
+      select "left(xdocnum,4)='CYRE'"
+      return "login"
+      layout 2
+      pstyle 3
+      objects ~
+                Add,Update,Delete,Clear,Search,Details, Top,Previous,Next, Bottom,Confirm,Show,"<p>",~
+              	xtornum,xdocnum,xdate,xcus,xorg,xitem,xqty,xstatus,xwh display(const),xsign display(hide),xdornum display(hide),~
+				xnote display(hide),xparentitem display(hide),xassetitem display(hide),xfagroup display(hide),xfatype display(hide),xfacat display(hide)
+				
+	field xdocnum
+		caption Transaction no
+		pick list cytrnreceive
+		event after
+		set xcl=xcus
+		set globals(xcl)=xcl
+		set globals(xdocnum)=xdocnum
+		end event
+	end field
+	
+	field xtornum
+	    col 2
+		pick list xtornumso
+		caption Sales Order Number
+		width 20
+		event after
+		set globals(xtornum)=xtornum
+        end event
+    end field
+	
+	
+	field xorg
+		attrib local
+		display const
+		caption Customer Name
+		event after
+		set xorg=cacus.xorg("xcus='"+xcus+"'")
+		end event
+	end field
+
+				
+	field Search
+		event after
+		end event
+	end field
+	
+	field xdate
+		caption Transaction Date
+	end field
+  
+  field xqty
+	caption Quantity
+	event after
+	if cytrn.xstatus("xdocnum='"+xdocnum+"'") .eq. "Confirmed"
+		         	set #field(add.attrib)="disabled"
+         			set #field(update.attrib)="disabled"
+         			set #field(delete.attrib)="disabled"
+         			set #field(Confirm.attrib)="disabled"
+	end if
+	end event
+  end field
+  
+	field xitem
+		caption Refill Item
+	end field
+  
+	field xcus
+		event before
+		end event
+	end field
+  
+  field Add
+					
+					event before
+
+					double cylbal = 0.00
+					
+					set cylbal= #sesql("select abs(xqty) from cybalancecus where xcus ='"+xcl+"' and xitem='"+xitem+"'")
+					set xcus=xcus
+					if xqty > cylbal
+						error "Cannot Proceed -- Quantity Is Exceeded"
+					else if xqty < 0.0001
+						error "Cannot Proceed -- Add Quantity"
+					else
+				
+					set xassetitem=xitem
+					set xparentitem=caitem.xitem("xassetitem='"+xitem+"'")
+					set xfagroup=caitem.xfagroup("xassetitem='"+xitem+"'")
+					set xfacat=caitem.xfacat("xassetitem='"+xitem+"'")
+					set xfatype=caitem.xfatype("xassetitem='"+xitem+"'")
+					set xsign=1
+					
+					set xwh="16"
+					set xstatus="Open"
+					set trn = "CYRE"
+            		set xdocnum = #trn("Cylinder Transactions",trn,14)
+					end if
+					
+  end event
+  
+  event after
+  
+
+					// set xdocnum=xdocnum
+					// set xsign=1
+					// set xwh="16"
+					// set xstatus="Open"
+					// set trn = "CYRE"
+            		// set xdocnum = #trn("Cylinder Transactions",trn,14)
+  // set temp = #spsql(zabsp_CylinderReciveTransaction,#id,#user,xcus,xitem,xqty,"add")	
+  end event
+  end field
+  
+  
+  
+  field update
+					event before
+					double cylbal = 0.00
+					
+					set cylbal= #sesql("select abs(xqty) from cybalancecus where xcus ='"+xcl+"' and xitem='"+xitem+"'")
+					set curbald= #sesql("select xqty from cytrn where xcus ='"+xcl+"' and xitem='"+xitem+"' and xdocnum='"+xdocnum+"'")
+					set curbal=cylbal+curbald
+					if xqty > curbal 
+						error "Cannot Proceed -- Quantity Is Exceeded"
+					else if xqty < 0.0001
+						error "Cannot Proceed -- Add Quantity"
+					end if
+					end event
+  end field
+  
+  field Confirm
+  event before
+  
+			if xstatus .ne. "Open" .and. xstatus .eq. ""
+				error "Cannot Proceed -- Status not Opened"
+			end if
+			// set xstatus="Confirm"			
+  end event
+  
+  event after
+					// set trn = "RE--"
+            		// set xdocnum = #trn("Inventory Transaction",trn,10)
+					set temp = #spsql(zabsp_CylinderReciveTransaction,#id,#user,xdocnum,xitem,xqty,"confirm")
+					action show
+  end event
+  
+  end field
+
+        embed onsubmit="return submitit(this)"
+        field Details
+          embed onclick="clicked(this)"
+        end field
+
+
+     end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+	history.pushState(null, null, document.URL);
+	window.addEventListener('popstate', function () {
+		history.pushState(null, null, document.URL);
+	});		
+		
+        var button
+        var result
+        function clicked(b){
+          button=b.value
+        }
+        function submitit(form){
+          result = true
+          if (button=="Details"){
+            form.screen.value = "cyreceivedetail"
+            // form.searchbutton.value = "Top"
+          }
+          return result
+        }
+
+        // function pickDetail(link){
+          // if (navigator.appName.indexOf("Netscape") >= 0){
+            // document.one.xinvnum.value=link.text;
+            // document.one.xbalance.value=primebal.text;
+            // document.one.xdate.value=date.text;
+          // }else{
+              // document.one.xamount.value=link.innerText
+          // }
+          // return false
+        // }
+        </script>
+     end jscript
+
+end screen

@@ -1,0 +1,363 @@
+screen acnotification
+
+  caption "Notifications"
+    
+ 	sidebar list dolist,list opcrn,list gdolist,list poadv,list polc,list podocret,list vouclistreject,list cashgrnno,list creditgrnno,list reqlistjnwork
+	sections list vouclist,list vouclistjv,list vouclistbank,list sysvoucher,list sysvoucheralc,list reqlistadv,list advreqlist,list advadjreqlist,list po,list asset,list settlement,list duedategrn,list appadjlist,jscript myscript
+
+	layout 4
+	pstyle nlist//nmlist  //nlist // datatable
+	
+	list duedategrn
+        caption "Maturity Payable Notification"
+        table arhed
+        order xvoucher
+		select "xnote='Transfer From GRN' and xstatusjv='Open'and xbalprime > 0 "
+        rows 100
+        objects  xvoucher,xgrnnum,xcus,org equals((select xorg from cacus where zid=arhed.zid and  xcus=arhed.xcus)),~
+                 xprime,xdatedue
+
+       headers "Invoice No","GRN No","Party","Party Name","Amount","Payment Due Date"
+     end list 
+	 
+	list settlement
+        caption "Settlement List Pending for Approval"
+        table pdsettlementviewlist
+        order xrow desc
+		select "(xapprover='"+#position+"')  and '"+#position+"'<>'' and xstatus<>'Open'  "
+       //select "zauserid='"+#user+"' and xstatus not in ('Approved','Open')"
+	   rows 25
+        objects xcase attrib(link "login?screen=pdsettlementapproveacc&command=Show&xcase=?&xrow=?"),xrow display(hide), ~
+               date equals((select xdate from pdsettlement where zid=pdsettlementviewlist.zid and xcase=pdsettlementviewlist.xcase)),xstaff, xname, xstatus
+        headers "Case Number","Row","Date","Employee ID","Employee Name","Status"
+     end list
+	 
+	 
+    list advreqlist
+      caption "Pending Money Requisition List"
+         table acreqheader
+        order xacreqnum desc
+	   select "left(xacreqnum,4)='EAD-' and xstatus='Approved' and xstatusap='Open'"  //and zauserid='"+#user+"'  and xstatusap<>'Confirmed'
+		
+		rows 10
+        objects  xacreqnum attrib(link "login?screen=accashadvheaderaccmanual&command=Show&xacreqnum=?"),~
+				  xdate,xprime,xstatus
+		headers "Requisition No","Date","Amount","Status"
+	end list
+	
+	 
+    list advadjreqlist
+      caption "Pending Money Requisition Adjustment List"
+         table acreqheaderadj
+        order xacreqnum desc
+	   select "left(xacreqnum,4)='EADJ' and xstatus='Approved' and xstatusap='Open'"  //and zauserid='"+#user+"'  and xstatusap<>'Confirmed'
+		
+		rows 10
+        objects  xacreqnum attrib(link "login?screen=accashadvheaderaccland&command=Show&xacreqnum=?"),~
+				  xdate,xprime,xstatus
+		headers "Requisition No","Date","Amount","Status"
+	end list
+	
+	
+	
+	list appadjlist
+      caption "Approved Purchase Adjustment GRN for Adjustment"
+         table approvedadjview
+         order xgrnnum desc
+	    //select "left(xacreqnum,4)='EADJ' and xstatus='Approved' and xstatusap='Open'"  //and zauserid='"+#user+"'  and xstatusap<>'Confirmed'
+		
+		rows 10
+        objects  xpreparer,xgrnnum attrib(link "login?screen=pogrnheaderadvadj&command=Show&xgrnnum=?"),xadvnum,xprime
+		headers "Preparer","GRN Number","PR Number","Amount"
+	end list
+	
+	
+     list asset 
+        caption "Approved Batch Pending For Asset Capitalization"
+        table moheader
+		dtlengthmenu [100, -1], [100, "All"]
+		dtordering [3,"desc"]
+        order xbatch desc
+       select "left(xbatch,4) in ('BATP') and xstatus in ('Approved') and xstatusmor  in ('Completed') and isnull(xstatusfa,'') <> 'Capitalized'"
+	   rows 25
+        objects xbatch attrib(link "login?screen=faassetcpt&command=Show&xbatch=?"),xdate,xitem width(15),xqtycom 
+		
+        headers "Batch No","Date","Finished Item Code","Production Quantity" 
+     end list
+	
+	 list dolist
+        caption "Pending Invoice List for Transfer To AR"
+        table opdoheader
+        order xdornum desc
+		select "left(xdornum,2)='DO' and xstatusord='Confirmed' and xstatusar='Open' and xstatus='Approved' "
+		rows 10
+        objects xdornum attrib(link "login?screen=opdoheaderacar&command=Show&xdornum=?"),~
+                 xdate,xwh,xtornum
+				 
+        headers "DO No","Date","Store ID","SO No."
+     end list
+	 
+	 			list opcrn
+				caption "Pending Sales Return List for Transfer To AR"
+				table opcrnheader
+				dtlengthmenu [100, -1], [100, "All"]
+				dtordering [0,"desc"]
+				order xcrnnum desc
+				select "left(xcrnnum,4)='SLR-' and xstatuscrn='Confirmed' and xstatusar='Open' and xstatus='Approved' "
+				rows 10
+				objects xcrnnum attrib(link "login?screen=opcrnheaderar&command=Show&xcrnnum=?"),~
+						 xdate,xordernum
+						 
+				headers "Sales Return No","Date","Invoice No"
+			 end list
+	
+	 list gdolist
+        caption "Pending Invoice List for Transfer To GL"
+        table opdoheader
+        order xdornum desc
+		select "left(xdornum,2)='DO' and xstatusord='Confirmed' and xstatusar='Confirmed' and xstatusjv='Open' and xstatus='Approved' "
+		rows 10
+        objects xdornum attrib(link "login?screen=opdoheaderacar&command=Show&xdornum=?"),~
+                 xdate,xwh,xtornum
+				 
+        headers "DO No","Date","Store ID","SO No."
+     end list
+	
+		list reqlistadv2
+		caption "Advance list for Purchase Requisition"
+        table poreqheader
+		dtlengthmenu [100, -1], [100, "All"]
+		dtordering [3,"desc"]
+        order xporeqnum desc
+		select "xstatusreq in ('Approved','PO Created') and xtype in ('Cash','Spot Purchase','Bank') and xstatusap='Open' and left(xporeqnum,4) in ('PR--')"
+		rows 4
+        objects  xporeqnum attrib(link "login?screen=poreqheadercashacc&command=Show&xporeqnum=?"), xdate,xtype,xtwh, ~
+				 desc equals((select xlong from branchview where zid = poreqheader.zid and  xcode=poreqheader.xtwh))
+               
+		  headers "Requisition No","Date","Purchase Type","Plant/Office Code","Name"
+	end list
+	
+	list reqlistjnwork2
+		caption "Advance List for Work Requisition"
+        table poreqheader
+		dtlengthmenu [100, -1], [100, "All"]
+		dtordering [3,"desc"]
+        order xporeqnum desc
+		select "xstatusreq in ('Approved','PO Created') and xtype in ('Cash','Spot Purchase','Bank') and xstatusap='Open' and left(xporeqnum,4) in ('JN--')"
+		rows 4
+        objects  xporeqnum attrib(link "login?screen=poreqheadercashacc&command=Show&xporeqnum=?"), xdate,xtype,xtwh, ~
+				 desc equals((select xlong from branchview where zid = poreqheader.zid and  xcode=poreqheader.xtwh))
+               
+		  headers "Requisition No","Date","Purchase Type","Plant/Office Code","Name"
+	end list
+	
+	list poadv
+		caption "Approved Advance list for Purchase Requisition"
+        table poreqheader
+		dtlengthmenu [100, -1], [100, "All"]
+		dtordering [3,"desc"]
+        order xporeqnum desc
+		select "xstatusreq in ('Approved','PO Created') and xtype in ('Cash','Spot Purchase','Bank') and xstatusap='Open' and left(xporeqnum,4) in ('PR--')"
+		rows 4
+        objects  xporeqnum attrib(link "login?screen=poreqheadercashacc&command=Show&xporeqnum=?"), xdate,xtype,xtwh, ~
+				 desc equals((select xlong from branchview where zid = poreqheader.zid and  xcode=poreqheader.xtwh))
+               
+		  headers "Requisition No","Date","Purchase Type","Plant/Office Code","Name"
+	end list
+	
+	list polc
+		caption "LC list for Opening Cost Entry"
+        table lcinfo
+		dtlengthmenu [100, -1], [100, "All"]
+		dtordering [3,"desc"]
+        order xlcno desc
+		select "xstatus='Applied'"
+		rows 4
+        objects  xlcno attrib(link "login?screen=lcopeningcost&command=Show&xlcno=?"), xlcissuedate,xcus,xlctype
+               
+		  headers "LC NO","Date","Party Code","LC Type"
+	end list
+	
+	list podocret
+		caption "Invoice list for Duty & Other Payment Entry"
+        table pogrnheader
+		dtlengthmenu [100, -1], [100, "All"]
+		dtordering [3,"desc"]
+        order xgrnnum desc
+		select "xstatus='Applied' and xtype='LC'"
+		rows 4
+        objects  xgrnnum attrib(link "login?screen=lcdutypayment&command=Show&xgrnnum=?"),xlcno,xdate,~
+				lctype equals((select xlctype from lcinfo where zid = pogrnheader.zid and  xlcno=pogrnheader.xlcno))
+               
+		  headers "Invoice No","LC NO","Date","LC Type"
+	end list
+	
+   list vouclistreject
+    caption "Reject / Open Voucher List"
+    table acheader
+	dtlengthmenu [100, -1], [100, "All"]
+	dtordering [3,"desc"]
+    order xvoucher desc
+	 select "xstatusjv='Balanced' and xstatus='Open' and xsignreject<>''"
+    rows 5
+    objects  xvoucher attrib(link "login?screen=acheader&command=Show&xvoucher=?"), ~
+             xdate,preparer equals((select xname from pdmst where zid=acheader.zid and xstaff=acheader.xpreparer))
+
+    headers "Voucher No","Date","Preparer"
+  end list
+	 
+   list vouclist
+    caption "Approved Cash Voucher & Manual-JV List For Post"
+    table acheader
+	dtlengthmenu [100, -1], [100, "All"]
+	dtordering [3,"desc"]
+    order xvoucher desc
+	 select "xstatusjv='Balanced' and xstatus='Approved' and left(xvoucher,4) not in ('BP--','BR--','JV--')"
+    rows 5
+    objects  xvoucher attrib(link "login?screen=acheaderpost&command=Show&xvoucher=?"), ~
+             xdate,xstatus
+
+   // headers "Line No","Acc Code","Description","Sub Code","Description","Debit","Credit"//,"Amt"
+  end list
+  
+   list vouclistjv
+    caption "Approved JV List For Post"
+    table acheader
+	dtlengthmenu [100, -1], [100, "All"]
+	dtordering [3,"desc"]
+    order xvoucher desc
+	 select "xstatusjv='Balanced' and xstatus='Approved' and left(xvoucher,4) in ('JV--')"
+    rows 5
+    objects  xvoucher attrib(link "login?screen=acheaderpost&command=Show&xvoucher=?"), ~
+             xdate,xstatus
+
+   // headers "Line No","Acc Code","Description","Sub Code","Description","Debit","Credit"//,"Amt"
+  end list  
+
+   list vouclistbank
+    caption "Approved Bank Voucher List For Post"
+    table acheader
+	dtlengthmenu [100, -1], [100, "All"]
+	dtordering [3,"desc"]
+    order xvoucher desc
+	 select "xstatusjv='Balanced' and xstatus='Approved' and left(xvoucher,2) in ('BP','BR')"
+    rows 5
+    objects  xvoucher attrib(link "login?screen=acheaderpostbank&command=Show&xvoucher=?"), ~
+             xdate,xstatus
+
+   // headers "Line No","Acc Code","Description","Sub Code","Description","Debit","Credit"//,"Amt"
+  end list 
+ 
+   list sysvoucher
+    caption "System Generated Voucher List"
+    table acheader
+	dtlengthmenu [100, -1], [100, "All"]
+	dtordering [3,"desc"]
+    order xvoucher desc
+	 select "xstatusjv in ('Balanced','Suspended') and left(xvoucher,4) in ('JV--')  and isnull(xlcno,'')='' and xstatus <>'Approved'"
+    rows 200
+    objects  xvoucher attrib(link "login?screen=acheader&command=Show&xvoucher=?"), ~
+             xdate,xgrnnum,xinvnum,xpreparer,xlong
+
+    headers "Voucher No","Date","Reference No","","Preparer","Description"
+  end list 
+  
+   list sysvoucheralc
+    caption "System Generated Allocation Voucher List"
+    table acheader
+	dtlengthmenu [100, -1], [100, "All"]
+	dtordering [3,"desc"]
+    order xvoucher desc
+	 select "xstatusjv in ('Balanced','Suspended') and left(xvoucher,4) in ('JV--')  and xlong='Allocation'"
+    rows 200
+    objects  xvoucher attrib(link "login?screen=acheader&command=Show&xvoucher=?"), ~
+             xdate,xgrnnum,xinvnum,xpreparer,xlong
+
+    headers "Voucher No","Date","Reference No","","Preparer","Description"
+  end list   
+
+	 list cashgrnno
+        caption "GRN/SQC List for Spot Purchase"
+        table pogrnheader
+        order xgrnnum
+		//select "xstatusgrn='Confirmed' and xtype not in ('LC','TT') and xstatusjv='Open' and xtype in ('Cash','Direct','Spot Purchase','Agreement')"
+		select "xstatusgrn='Confirmed' and xtype not in ('LC','TT') and xstatusjv='Open' and xtype in ('Cash','Spot Purchase')"
+        rows 100
+        objects  xgrnnum attrib(link "login?screen=pogrnheaderadvadj&command=Show&xgrnnum=?"), ~
+                 xdate,xtype,xcus,org equals((select xorg from cacus where zid=pogrnheader.zid and  xcus=pogrnheader.xcus)),~
+				 whdesc equals((select xlong from branchview where zid=pogrnheader.zid and  xcode=pogrnheader.xwh))
+
+
+       headers "GRN No","Date","Type","Party","Party Name","Plant/Store/ Project"
+     end list   
+
+	 
+	 list creditgrnno
+        caption "GRN/SQC List for Create AP"
+        table pogrnheader
+        order xgrnnum
+		//select "xstatusgrn='Confirmed' and xtype not in ('LC','TT','Cash','Direct','Spot Purchase','Agreement') and xstatusjv='Open'"
+		select "xstatusgrn='Confirmed' and xtype not in ('LC','TT','Cash','Direct','Spot Purchase') and xstatusjv='Open'"
+        rows 100
+        objects  xgrnnum attrib(link "login?screen=pogrnheaderac&command=Show&xgrnnum=?"), ~
+                 xdate,xtype,xcus,org equals((select xorg from cacus where zid=pogrnheader.zid and  xcus=pogrnheader.xcus)),~
+				 whdesc equals((select xlong from branchview where zid=pogrnheader.zid and  xcode=pogrnheader.xwh))
+
+
+       headers "GRN No","Date","Type","Party","Party Name","Plant/Store/ Project"
+     end list 
+	 
+	list po
+        caption "PO/WO Review"
+        table poordheader
+		dtlengthmenu [100, -1], [100, "All"]
+		dtordering [3,"desc"]
+        order xpornum desc
+        select "left(xpornum,4) in ('PO--','WO--') and xstatus not in ('Open') and xstatuspor = 'Open'"
+	    rows 50
+        objects xpornum attrib(link "login?screen=poordheader_q&command=Show&xpornum=?"),xdate,xstatus,xempunit, ~
+				xidsupdesc equals((select xname from pdmst where zid=poordheader.zid and xposition=poordheader.xidsup)),~
+				 xidsupdesc2 equals((select xname from pdmst where zid=poordheader.zid and xposition=poordheader.xsuperior2)),~
+				 preparer equals((select xname from pdmst where zid=poordheader.zid and xstaff=poordheader.xpreparer))
+               
+        headers "PO /WO No","Date","Status","Unit","Approver","OR >>>>>> Approver","Preparer"
+     end list	 
+  
+     form one
+        //caption "Requisition Approved By Dept. Head""
+        table imtorheader
+        primarykey xtornum
+        order xtornum 
+	//	select "xstatustor='Open' and xidsup='"+#position+"'"
+		select "left(xtornum,2)='SR'"
+        return "login"
+        pstyle 1
+        layout 1
+        
+	
+        embed onsubmit="submitit(this)"
+
+      end form
+
+      jscript myscript
+
+        <script language="javascript" type="text/javascript">
+     var time = new Date().getTime();
+     $(document.body).bind("mousemove keypress", function(e) {
+         time = new Date().getTime();
+     });
+
+     function refresh() {
+         if(new Date().getTime() - time >= 3000) 
+             window.location.reload(true);
+         else 
+             setTimeout(refresh, 3000000);
+     }
+
+     setTimeout(refresh, 3000000);
+        </script>
+     end jscript
+
+
+
+end screen

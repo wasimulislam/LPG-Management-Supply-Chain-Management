@@ -1,0 +1,213 @@
+screen bmpreprdbomdetailadmin
+
+	sidebar list one
+	sections  form one, jscript myscript
+	
+	list one
+		caption "BOM Component for "+xbomkey+"<br>"+caitem.xdesc("xitem='"+xitem+"'")
+		table bmbomdetail
+		order xbomkey,xbomrow
+		fixed xbomkey
+		rows 20
+		//maxwidth 850
+		objects  xbomrow,xbomcomp attrib(link "login?screen=bmpreprdbomdetailadmin&command=Show&xitem=?&xbomrow=?"),~
+				 desc equals((select xdesc from caitem where zid=bmbomdetail.zid and xitem=bmbomdetail.xbomcomp)),~
+				 xwh,xqtymix,xpercent,xamount,xunit,xstype
+		header "Code","Component","Description","Store","Qty","Percentage of Raw Materials Value","Value","Unit","Component Type"
+	end list
+
+	form one
+		caption "Pre-Process BOM Update Detail For : "+xbomkey
+		table bmbomdetail
+		order xbomkey,xbomrow
+		fixed xbomkey
+		return "login"
+		layout 2
+		pstyle 3
+		objects Show,Clear,Add,Update,Delete,Top,Previous,Next,Bottom,Return,"<p>" ,~
+				xbomrow attrib(row 0 1),xstype,xbomcomp,xdesc,xqtymix,xunit,xamount,xpercent,~
+				xwh,xwhdesc,xassembly display(h),xfixedqty display(h)
+  
+		
+		field xwh
+			caption Store
+			default #wh
+		end field
+		
+		field xdum
+			atrrib local
+			display const
+			caption 
+		end field
+		
+		field xpercent
+			caption Percentage of Raw Material Value
+		end field
+
+		field xamount
+			caption Fixed Value
+		end field		
+		
+		field xstype
+			caption Component Type
+			display const
+			pick "Raw Materials,By Product"
+			default "Raw Materials"
+			event before
+			set xstype=caitem.xgitem("xitem='"+xbomcomp+"'")
+			end event 
+			event after
+				if bmbomheader.xbomtype("xbomkey='"+xbomkey+"'") .eq. "Sales"
+					set #field(xstype.display)="constant"
+					set xstype="Raw Materials"
+				end if
+				if bmbomheader.xstatus("xbomkey='"+xbomkey+"'") .ne. "Open"
+					set #field(xbomcomp.display)="constant"
+					set #field(xqtymix.display)="constant"
+					set #field(xamount.display)="constant"
+					set #field(xpercent.display)="constant"
+					set #field(xwh.display)="constant"
+					set #field(Add.attrib)="disabled"
+					set #field(Update.attrib)="disabled"
+					set #field(Delete.attrib)="disabled"
+				end if			
+			end event
+		end field
+
+		
+		field xwhdesc
+			attrib local
+			display const
+			caption Store Name
+			event after
+				set xwhdesc=branchview.xlong("xcode='"+xwh+"'")
+			end event
+		end field
+		
+		field xbomcomp
+			caption Component Code
+			embed Autocomplete="Off"
+			pick list xitemrmprebom
+			event after
+				set bitem = bmbomheader.xitem("xbomkey='"+xbomkey+"'")
+				set itemdept = caitem.xitemdept("xitem='"+bitem+"'")
+				if itemdept .eq. "IN"
+					set #field(xbomcomp.pick)="xitemindl"
+				end if
+			end event
+		end field
+		
+		field xunit
+			display const
+			event before
+				//set xunit = caitem.xunit("xitem='"+xbomcomp+"'")
+			end event
+		end field
+
+		field xdesc
+			atrrib local
+			caption Description
+			display const
+			event after
+				set xdesc=caitem.xdesc("xitem='"+xbomcomp+"'")
+			end event
+		end field
+
+		field xqtymix
+			caption Applicable Quantity
+		end field
+		
+		  field add
+		  event before
+			set gitem=caitem.xgitem("xitem='"+xbomcomp+"'")
+			if gitem .eq. "Cost"
+				set xqtymix=0
+			else
+				set xpercent=0
+				set xamount=0
+			end if
+			
+			set xunit = caitem.xunit("xitem='"+xbomcomp+"'")
+			set item=#sql("select xbomcomp from bmbomdetail where xbomkey='"+xbomkey+"' and xbomcomp='"+xbomcomp+"'")
+			set sstwhu=xcodes.xcode("xtype='Branch' and xcode='"+xwh+"' and zactive=1")
+			set bompitem = caitem.xitem("xitem='"+xbomcomp+"' and zactive=1")
+			if xbomcomp .eq. ""
+				error "Select Item Please!"
+			else if bompitem .ne. xbomcomp
+				error "Cannot Proceed - Item Does not Match!"
+			else if item .eq. xbomcomp
+				error "This item is already added!"
+			else if xqtymix < 0.001 .and. xpercent <0.001 .and. xamount <0.001
+				error "Qty/Percent/Amount Must be greater than 0!"
+			else if xpercent >0.001 .and. xamount >0.001
+				error "Input either Percent or Amount!"
+			else if sstwhu .eq. ""
+				error "Cannot Proceed - To Store not exists!"	
+			end if
+          end event
+          event after
+				set temp=#sql("update bmbomheader set xstatus='Open' where xbomkey='"+xbomkey+"'")
+          end event
+        end field
+		
+        field update
+          event before
+			set gitem=caitem.xgitem("xitem='"+xbomcomp+"'")
+			if gitem .eq. "Cost"
+				set xqtymix=0
+			else
+				set xpercent=0
+				set xamount=0
+			end if		  
+		   set item=#sql("select xbomcomp from bmbomdetail where xbomkey='"+xbomkey+"' and xbomcomp='"+xbomcomp+"'")
+		   double row= #sql("select xbomrow from bmbomdetail where xbomkey='"+xbomkey+"' and xbomcomp='"+xbomcomp+"'")
+			set xunit = caitem.xunit("xitem='"+xbomcomp+"'")
+			set bompitemu = caitem.xitem("xitem='"+xbomcomp+"' and zactive=1")
+			set sstwhuu=xcodes.xcode("xtype='Branch' and xcode='"+xwh+"' and zactive=1")
+			set status=if bmbomheader.xstatus("xbomkey='"+xbomkey+"'") 
+		   if xbomkey .eq. ""
+			error "Please select Product!"
+			else if item .eq. xbomcomp .and. xbomrow <> row
+				error "This item is already added!"
+			else if bompitemu .ne. xbomcomp
+				error "Cannot Proceed - Item Does not Match!"
+			else if xqtymix < 0.001 .and. xpercent <0.001 .and. xamount <0.001
+				error "Qty/Percent/Amount Must be greater than 0!"
+			else if xpercent >0.001 .and. xamount >0.001
+				error "Input either Percent or Amount!"		
+			else if sstwhuu .eq. ""
+				error "Cannot Proceed - To Store not exists!"			
+		   else if status .ne. "Open"
+				error "Cannot Proceed - Please Open Status First!"			
+		   end if
+          end event
+          event after
+				set temp=#sql("update bmbomheader set xstatus='Open' where xbomkey='"+xbomkey+"'")
+          end event
+        end field		
+		
+		field Return
+			embed onclick="clicked(this)"
+		end field
+
+		embed onsubmit="submitit(this)"
+
+	end form
+
+	jscript myscript
+		<script language="javascript" type="text/javascript">
+			var detail
+			function clicked(b){
+				detail=b.value
+			}
+			function submitit(form){
+				if (detail=="Return"){
+					form.screen.value = "bmpreprdbomheaderadmin"
+					form.searchbutton.value = "Find xbomkey=?"
+					//return false
+				}
+			}
+		</script>
+	end jscript
+
+end screen

@@ -1,0 +1,15 @@
+     list xsocts
+        caption "Sales Order List"</b>"
+        table imtorheader
+        order xtornum desc
+        select "( xtornum like '%"+zvalue+"%') AND left(xtornum,2)='SO' and xsubcat='LPG Cylinder'  AND xstatus='Approved'"
+		searchselect "left(xtornum,2)='SO' and xsubcat='LPG Cylinder'  AND xstatus='Approved' "
+        rows 50
+        objects ~
+         xtornum attrib(link "abc" embed onclick="return updateParent(this:'')"),xcus,xdate,xtrnnum,xiscomplete
+		 
+		headers "SO Number","Customer" ,"Date" ,"Ref.","Is Complete?"
+     end list
+
+
+

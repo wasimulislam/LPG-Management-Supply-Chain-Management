@@ -1,0 +1,21 @@
+//acglprcs.menu
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+
+//
+Inventory Adjustment    				 |#classPath+"/login?screen=imtrnadj"
+Inventory Consumption(GL Process)	     |#classPath+"/login?screen=imconsumption"
+Handling Loss/Short Receive(GL Process)	 |#classPath+"/login?screen=imhlqs"
+Inventory Adjustment(GL Process)	 	 |#classPath+"/login?screen=imconsumptionadis"
+Inventory Damage Issue(GL Process)	 	 |#classPath+"/login?screen=imconsumptiondamage"
+Inventory Transfer(GL Process)     	 	 |#classPath+"/login?screen=imtoconsumption"
+//Inventory Loan -- Transfer To GL     	 |#classPath+"/login?screen=imloantogl"
+//Inventory Loan(GL Process)		     	 |#classPath+"/login?screen=imloanheaderac"
+Inventory CWIP(GL Process)	     		 |#classPath+"/login?screen=imconsumptioncwip"
+//Process Weighted Avg Costing    		 |#classPath+"/login?screen=imaveragecost"
+Salary Transfer To GL           		 |#classPath+"/login?screen=pdtogltransfer"
+//Transitory Accounts Transfer Process			|#classPath+"/login?screen=actransitoryprcs"
+
+//-------------------------------------------------------------------
+

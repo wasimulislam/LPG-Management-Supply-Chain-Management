@@ -1,0 +1,338 @@
+screen imtormoreqheaderso
+	
+     sidebar list pertial,list sodet//list sodetail,,list dolist,,list imtor
+	 sections form one,jscript myscript,list sodolist,list sodolist1//,list sodolist
+   
+
+	 
+	  list sodet
+        caption "<center><b>"Sales Order Detail List For :"</b>"+xtornum
+        table imtordetailopdcview
+        order xtornum
+        fixed xtornum
+        rows 10
+        objects ~
+        xitem,~
+		desc equals((select xdesc from caitem where zid=imtordetailopdcview.zid and xitem=imtordetailopdcview.xitem)),~
+        xqtypor,xqtyreq,xqtydoc,xqtyalc,xqtyreq-xqtydoc,xunit
+			
+        headers "Item","Description","Quantity Required","Approved Qty","Quantity-Open DC","Quantity-Confirmed DC","Remaining Qty For DC","Unit"
+
+     end list
+ 
+	
+	 list pertial
+        caption "Pending SO List For Create Delivery Challan"
+        table imtorheader
+        order xtornum desc
+        select "xtornum in (select xtornum from imtordetailopdcview where xqtyreq>xqtyalc) and left(xtornum,2)='SO' and xstatustor in ('Approved','Partial DC Created') and isnull(xstatuslock,'') in('','Open')" 
+
+		rows 5
+        objects  xtornum  attrib(link "login?screen=imtormoreqheaderso&command=Show&xtornum=?"),~
+                 xdate,~
+				 xstatustor
+				 
+        headers "SO No","Date","Status"//,"To Dealer"
+     end list
+
+
+	 
+ list sodolist
+        caption "Created Delivery Challan List By :"+pdmst.xname("xposition='"+#position+"'")+" For :"+xtornum 
+        table opdcheader
+        order xdocnum desc
+		maxwidth 550
+		select "left(xtornum,2) = 'SO' and left(xdocnum,2)='DC' and xtornum='"+xtornum+"' and zauserid='"+#user+"'"
+		rows 10
+        objects  xdocnum attrib(link "login?screen=opdcheader&command=Show&xdocnum=?"),~
+                 xdate,xfwh,xtornum,xstatusdoc
+				 
+        headers "DC No","Date","Store/Branch ID","SO No.","Status"
+     end list
+
+list sodolist1
+        caption "All Created Delivery Challan For :"+xtornum
+        table opdcheader
+        order xdocnum desc
+		maxwidth 550
+		select "left(xtornum,2) = 'SO' and left(xdocnum,2)='DC' and xtornum='"+xtornum+"'"
+		rows 10
+        objects  xdocnum,xdate,xfwh,xtornum,xstatusdoc,usern desc equals((select xname from pdmst where pdmst.zid=opdcheader.zid and pdmst.xposition=opdcheader.zauserid))
+				 
+        headers "DC No","Date","Store/Branch ID","SO No.","Status","Preparer"
+     end list
+
+
+     form one
+        caption "Create Delivery Challan"
+        table imtorheader
+        primarykey xtornum
+        order xtornum 
+	//	select "xstatustor in ('Approved','DC Created','Partial DC Created') and xfwh in (select xwh from userstoreview where xposition='"+#position+"') and '"+#position+"'<>''"
+        return "login"
+        pstyle 3
+        layout 3
+        objects Show,Clear,Update,Create_Delivery_challan,~//Cash PR,Issue From Stock,~Receive Stock,"<p>" ,~Create_Invoice,
+				xtornum ,xdate,xdatedel,~//xdatedo
+				xfwh,xfbrname,cusname,~
+				xtwh display(hide),xtbrname display(hide),credit,~
+				preparer display(const),xstatustor display(constant),crused,~
+				xref display(hide),xlong,creditchk,~
+				xchassisno display(hide),xcus display(hide),xdatecom display(hide),~
+				xdocrow display(hide),xstatusreq display(hide),zauserid display(hide)
+				
+
+		field xstatustor 
+			caption SO Status
+			event before
+
+			end event
+			event after
+				if imtorheader.xstatustor("xtornum='"+xtornum+"'") .eq. "DC Created"
+					set #field(add.attrib)="disabled"
+					set #field(delete.attrib)="disabled"
+					set #field(update.attrib)="disabled"
+
+				end if
+			end event
+		end field
+
+       
+	   field xfwh
+		caption From Store
+	   end field
+	   
+	    field xtwh
+		caption To Store
+	   end field
+	   
+	   
+	   
+	   field cusname
+        attrib local
+        caption Dealer Name
+        display const
+        event after
+          set cusname=cacus.xorg("xcus='"+xcus+"'")
+        end event
+       end field
+		
+       field xfbrname
+        attrib local
+        caption Store Name
+        display const
+        event after
+          set xfbrname=xcodes.xlong("xtype='Branch' and xcode='"+xfwh+"'")
+        end event
+       end field
+
+    field credit
+  	  attrib local
+  	  display const
+    	caption Credit Limit
+      event after
+		set credit=cacreditview.xcrlimit("xcus='"+xcus+"'")
+      end event
+    end field	   
+	   
+       field creditchk
+        attrib local
+        caption Creadit Availability
+        display const
+        event after
+          set creditchk=cacreditview.xbalance("xcus='"+xcus+"'")
+        end event
+       end field
+
+    field crused
+  	  attrib local
+  	  display const
+    	caption Credit Used
+      event after
+		set crused=cacreditview.xcrlimit("xcus='"+xcus+"'")-cacreditview.xbalance("xcus='"+xcus+"'")
+      end event
+    end field
+	   
+		field xregi
+		pick list xcardept
+			caption Department Name
+			event before
+			end event
+		end field
+		
+
+        field xtornum
+		 pick list xtornumso
+			caption Sales Order Number
+			width 20
+			
+          event after
+
+			 set globals(xtornum)=xtornum
+
+		   class careports(getReport{opsoprint;2;in,st;zid,tornum;xtornum;Print Sales Order})
+		   
+				  double dphqty = #sesql("SELECT sum(xdphqty) FROM imtordetail WHERE zid = '"+#id+"'  AND  xtornum ='"+xtornum+"'")
+				  double qtyalc = #sesql("SELECT sum(xqtyalc) FROM imtordetail WHERE zid = '"+#id+"'  AND  xtornum ='"+xtornum+"'")
+		          set unvail=dphqty-qtyalc
+				  
+				if unvail == 0
+				set #field(Create_Delivery_challan.attrib)="disabled"
+				end if
+				if xtornum .eq. ""
+					set #field(Create_Delivery_challan.attrib)="disabled"
+				end if	
+				if imtorheader.xstatustor("xtornum='"+xtornum+"'") .eq. "DC Created"
+				set #field(Create_Delivery_challan.attrib)="disabled"
+				end if				
+   
+
+
+           end event
+        end field
+
+		 field xporeqnum
+          caption Purchase Requisition No.
+        end field
+		
+        field preparer
+          caption Preparer
+		  attrib local
+		  event after
+		  set preparer=pdmst.xname("xposition='"+zauserid+"'")
+		  end event
+        end field
+
+		  field xdate
+          caption SO Date
+		  display const
+        end field
+
+        field xdatecom
+          caption Receive Date
+        end field
+		
+		 field xdum
+		 attrib local
+          display constant
+          caption
+        end field
+
+
+        field xlong
+		caption Note
+          height 1
+          //width 70
+          column 2
+        end field
+		
+		field deptname
+          caption Department Name
+		  attrib local
+		  event after
+		  set deptname=cacardept.xlong("xregi='"+xregi+"'")
+		  end event
+        end field
+		
+		field show
+          
+          
+		  event after
+		  set oavail = #sesql("SELECT top 1 xitem FROM imtordetailopdcview WHERE zid = '"+#id+"'  AND  xtornum ='"+xtornum+"' group by xitem,isnull(xrate,0),xtornum,xavail having isnull(sum(isnull(xqtyreq,0)-isnull(xqtyalc,0)),0)>xavail")
+	     // set unvail = #sesql("SELECT top 1 xitem FROM imtordetailopview WHERE zid = '"+#id+"'  AND  xtornum ='"+xtornum+"' group by xitem,isnull(xrate,0),xtornum,xavail having isnull(sum(isnull(xqtyreq,0)+isnull(xqtyord,0)-isnull(xqtyalc,0)),0)<0.00001")
+				  double dphqty = #sesql("SELECT sum(xdphqty) FROM imtordetail WHERE zid = '"+#id+"'  AND  xtornum ='"+xtornum+"'")
+				  double qtyalc = #sesql("SELECT sum(xqtyalc) FROM imtordetail WHERE zid = '"+#id+"'  AND  xtornum ='"+xtornum+"'")
+		          double unvail=dphqty-qtyalc
+				  
+				  
+				  
+		 //print unvail
+		set message=<font style="color:Red;font-weight:bolder">"Stock not fully available!"
+		 set message2="Stock fully available!"
+		 set message3="Fully Performed Sales Order!"
+
+		 
+		    if oavail .ne. "" .and. xtornum .ne. ""
+             print message
+			else if oavail .eq. "" .and. xtornum .ne. "" //.and. unvail .eq. ""
+             print message2
+			else if unvail == 0
+             print message3
+			 
+			 
+			end if
+			//print oavail
+		  
+		  end event
+        end field
+
+        field Create_Delivery_challan
+          event before
+		 set oavail = #sesql("SELECT top 1 xitem FROM imtordetailopdcview WHERE zid = '"+#id+"'  AND  xtornum ='"+xtornum+"' group by xitem,isnull(xrate,0),xtornum,xavail having isnull(sum(isnull(xqtyreq,0)-isnull(xqtyalc,0)),0)>xavail")  
+       set sonum = #sesql("select a.xtornum from imtorheader a where a.xtornum in (select b.xtornum from imtordetailopview b where a.xtornum=b.xtornum group by b.xtornum having sum(b.xqtyreq-b.xqtyord-b.xqtyalc)=0) and a.xtornum='"+xtornum+"' and a.zid='"+#id+"'")
+	              double dphqty = #sesql("SELECT sum(xdphqty) FROM imtordetail WHERE zid = '"+#id+"'  AND  xtornum ='"+xtornum+"'")
+				  double qtyalc = #sesql("SELECT sum(xqtyalc) FROM imtordetail WHERE zid = '"+#id+"'  AND  xtornum ='"+xtornum+"'")
+		          double unvail=dphqty-qtyalc
+				  
+          if sonum .eq. xtornum
+              error "Cannot Proceed --Remaining SO Qty Is Zero(0)"
+			else if unvail == 0
+			   error "Cannot Proceed --Remaining SO Qty Is Zero(0)"
+			else if xiscomplete .ne. 1 
+			   set #field(Create_Delivery_challan.attrib)="disabled"
+			end if
+          end event
+          event after
+            set temp = #spsql(zabsp_OP_createDCfromSO,#id,#user,xtornum,xdatedel,xfwh,"Create DC")//xdatedo
+            action Show
+          end event
+        end field
+		
+
+
+		
+        embed onsubmit="submitit(this)"
+
+        field Details
+          embed onclick="clicked(this)"
+        end field
+
+        field Booking
+          embed onclick="clicked(this)"
+        end field
+		
+     end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var Booking
+
+        function clicked(b){
+          Booking="clicked"
+        }
+
+        function submitit(form){
+          if (Booking=="clicked"){
+            form.screen.value = "imtormoreqdetailso"
+            form.searchbutton.value = "Find xtornum=?"
+          }
+        }
+		function pickItem(link){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xcur.value=link.text
+            document.one.xexch.value=exch.text
+          }else{
+          link.innerText
+            document.one.xtornum.value=link.innerText
+          }
+          return false
+        }
+
+
+        </script>
+     end jscript
+
+
+
+end screen

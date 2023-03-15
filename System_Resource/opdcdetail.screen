@@ -1,0 +1,335 @@
+screen opdcdetail
+
+     sidebar list two,list one//list sodet,
+     sections  form one, jscript myscript
+	 
+	 
+
+    list two
+        caption "<center><b>"Sales Order Detail List For :"</b>"+xtornum
+        table imtordetailopdcview
+		order xrow
+        fixed xtornum
+		select "(xqtyreq-xqtydoc)>0"
+        rows 10
+        objects ~
+		xrow,xitem attrib(link "abc" embed onclick="return pickItem(this:xqty#)"),~
+		desc equals((select xdesc from caitem where zid=imtordetailopdcview.zid and xitem=imtordetailopdcview.xitem)),~
+        xqtyreq,(xqtyreq-xqtydoc) attrib(name xqty#),xqtydoc,xqtyalc,xunit
+			
+
+        headers "Row","Item","Description","Approved Qty","Pending Qty","Quantity-Used","Quantity-Confirmed","Unit"
+		//totals "","","",sum,sum,""
+     end list
+	 
+      list one
+      caption "Detail List"
+        table opdcdetail
+        order xdocnum,xdocrow
+        fixed xdocnum
+        rows 20
+        objects  xdocrow,~
+                 xitem attrib(link "login?screen=opdcdetail&command=Show&xdocnum=?&xdocrow=?"),~
+				 desc equals((select xdesc from caitem where zid=opdcdetail.zid and xitem=opdcdetail.xitem)),~
+                xref,xqtydoc,xunit//,xrate,xlineamt,xvatamt,xdiscdetamt,xnetamt //(xlineamt+xvatamt-xdiscdetamt),xdiscdet,xdiscdetamt,
+
+       // header "Sl. No","Name Of <br>The Product","Product <br>Code","Qty","Bonus <br>Qty","Rate","Special <br>Rate","Vat <br>Amt","TP","Net Amt"//"Disc %","Disc <br>Amt",
+        header "Sl. No","Product <br> Code","Name Of <br>The Product","Product Description","Qty","Unit"//,"Rate","Regular Price","Vat <br>Amt","Disc <br>Amt","Net Amt"//,"Disc %","Disc <br>Amt"
+		totals "","Totals","","","",""//,"",sum,sum,sum,sum,sum
+     end list
+
+	 
+
+     form one
+        caption "Delivery Chalan Detail For <br>  "+xdocnum
+        table opdcdetail
+        primarykey xdocnum,xdocrow
+        order xdocnum,xdocrow
+        fixed xdocnum
+        return "login"
+        layout 2
+        pstyle 3
+        objects Add,Update,Delete,*next,Show,Clear,~//Add,
+              *next,Top,Previous,Next,Bottom,Return,"<p>",~  //Qty Add,
+				xdocrow attrib(xdocrow 0 1),xunit display(const),~
+				xitem,xqtydoc,~
+				xdesc,xref,xcost display(hide),xbnprintstatus display(hide),xpreparer display(hide),xtornum display(hide)
+ 
+
+	field xref
+	   caption Product Description
+	   display const
+	   //pick "select xcode from xcodes where xtype='Cylinder Condition'"
+	end field
+	
+
+	
+	field xitem
+	event before
+	if opdcheader.xsubcat("xdocnum='"+xdocnum+"'") .eq. "Auto Gas" 
+		set #field(xitem.pick)="xitemsubcat1"
+	else if opdcheader.xsubcat("xdocnum='"+xdocnum+"'") .eq. "Bulk LPG" 
+		set #field(xitem.pick)="xitemsubcat2"
+	else if opdcheader.xsubcat("xdocnum='"+xdocnum+"'") .eq. "LPG Cylinder" 
+		set #field(xitem.pick)="xitemsubcat3"	
+	end if
+	            
+    if opdcheader.xstatus("xdocnum='"+xdocnum+"'") .eq. "Approved"  .or. opdcheader.xstatus("xdocnum='"+xdocnum+"'") .eq. "Applied" .or. opdcheader.xstatus("xdocnum='"+xdocnum+"'") .eq. "Recommended" .or. opdcheader.xstatustor("xdocnum='"+xdocnum+"'") .eq. "DO Created"  .or. opdcheader.xstatusdoc("xdocnum='"+xdocnum+"'") .eq. "Confirmed" 
+				set #field(add.attrib)="disabled"
+				set #field(delete.attrib)="disabled"
+				set #field(update.attrib)="disabled"
+    end if
+	
+		if opdcdetail.xpreparer("xdocnum='"+xdocnum+"' and xdocrow='"+xdocrow+"'") .eq. "system.zab"
+	    set #field(add.attrib)="disabled"
+	    set #field(delete.attrib)="disabled"
+	    set #field(update.attrib)="disabled"
+	  end if
+	
+	end event
+ 
+	end field
+ 
+ 
+	field xdocrow
+	
+          event after
+            set status = opdcheader.xstatustor("xdocnum='"+xdocnum+"'")
+
+          end event
+        end field
+
+ 
+        field xdesc
+          caption Product Name
+          attrib local
+          display const
+		  column 2
+          event after
+            set xdesc=caitem.xdesc("xitem='"+xitem+"'")
+			if xdocnum .eq. ""
+              set #field(delete.attrib)="disabled"
+              set #field(update.attrib)="disabled"
+              // set #field(confirm.attrib)="disabled"
+            end if
+          end event
+        end field
+		
+	  	
+    field add
+        event before
+		set xtornum=opdcheader.xtornum("xdocnum='"+xdocnum+"'")
+		set xpreparer=#user
+		set xref=caitem.xitemtype("xitem = '"+xitem+"'")
+		set pendingqty=#sesql("select isnull((isnull(xqtyreq,0))-(isnull(xqtydoc,0)),0) from imtordetailopdcview where zid='"+#id+"' and xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+		//set qty=#sesql("select xqtydoc from opdcdetail where zid='"+#id+"' and xpreparer<>'system.zab' and xitem='"+xitem+"'")
+		set xitem=#trim(xitem)
+		double xdphqty=xqtyreq
+		set fwh=opdcheader.xfwh("xdocnum='"+xdocnum+"'")
+		set xunit = caitem.xunitsel("xitem = '"+xitem+"'")
+
+		set cus=opdcheader.xcus("xdocnum='"+xdocnum+"'")	
+		set gcus = cacus.xgcus("xcus='"+cus+"'")
+		set item=#sql("select xitem from opdcdetail where xdocnum='"+xdocnum+"' and xitem='"+xitem+"' and xpreparer<>'system.zab' ")
+ 
+		set activeitem = caitem.zactive("xitem='"+xitem+"'")		  
+		set exdate = #sesql("select xdateexp from cacusprice where xcus='"+xcus+"' and xitem='"+xitem+"' and zactive='1'")
+		set date = #sql("select xdate from opdcheader where xdocnum='"+xdocnum+"'")
+		double xqtydoc=xqtydoc
+		set itemref=#sesql("select xitemtype from caitem where xitem='"+xitem+"' and zid='"+#id+"' ")
+		
+		set iitem=#sesql("select xitem from imtordetail where xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+			if xref .eq. ""
+				error "Please Select Product Description!"	
+			else if itemref .ne. xref
+				error "Product Description Not Matched!"
+			else if iitem .eq. ""
+				error "This Product Not Found in This Sales Order!"	
+			end if
+			if xqtydoc>pendingqty
+			    error "Challan quantity cannot be bigger than Pending quantity"
+			end if
+			if xqtydoc <0.001
+				error "Please Enter Require Quantity" 
+			end if
+			
+			
+            set fwh=opdcheader.xfwh("xdocnum='"+xdocnum+"'")
+
+		//*********************Checking Min Price************************/
+		set cat=#sql("select xsubcat from opdcheader where xdocnum='"+xdocnum+"' ")
+		set itemcat=#sesql("select xsubcat from caitem where xitem='"+xitem+"' and zid='"+#id+"' ")
+
+		// set ref=#sql("select xref from opdcdetail where xdocnum='"+xdocnum+"' and xitem='"+xitem+"' and xref='"+xref+"'")
+				if activeitem .ne. "1"
+					error "Product is inactive!"
+				else if itemcat .ne. cat
+					error "Cannot Proceed -- Item Catagory Not Matched with : "+	itemcat	
+				else if item .eq. xitem
+					error "This item is already added!"
+				end if	
+				set date=#sql("select xdate from opdcheader where xdocnum='"+xdocnum+"'")
+				set wh=opdcheader.xfwh("xdocnum ='"+xdocnum+"'")
+				// set avail  = #sql("select sum(xqty*xsign) from imtrn where xwh='"+fwh+"' and xitem='"+xitem+"' and cast(xdate as date)<=cast( '"+date+"' as date)")
+				set avail = #sql("select xavail from imstockdc where xwh='"+fwh+"' and xitem='"+xitem+"'") //and cast(xdate as date)<=cast( '"+date+"' as date)
+				double ordqty = xqtydoc
+				if avail<ordqty
+						// print "<font size=+2 color=red>Cannot Proceed -- Available Stock Is: "+avail+"</font>"
+						error "<font size=+2 color=white>Cannot Proceed -- Available Stock Is: "+avail+" Others May Be On Hold</font>"
+						set temp = #sql("delete opdcdetail where xdocnum='"+xdocnum+"' and xdocrow="+xdocrow)
+				end if	
+				end event
+				
+				event after
+				set bnprint = #sql("select xbnprintstatus from caitembonus where xitem='"+xitem+"' and xwh='"+wh+"'")
+				set temp = #sql("update opdcdetail set xbnprintstatus ='"+bnprint+"' where xitem='"+xitem+"'")	
+				set temp = #spsql(zabsp_OP_validateAfterDetailDC,#id,#user,xdocnum,xdocrow,xitem,xqtydoc)
+				action show	
+				end event
+		  
+        end field
+
+    field update
+		event before
+		    set xtornum=opdcheader.xtornum("xdocnum='"+xdocnum+"'")
+			set ref=#sql("select xref from opdcdetail where xdornum='"+xdornum+"' and xitem='"+xitem+"' and xref='"+xref+"'")
+			double pendingqty=#sesql("select isnull((isnull(xqtyreq,0))-(isnull(xqtydoc,0)),0) from imtordetailopdcview where zid='"+#id+"' and xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+		    double qty=#sesql("select xqtydoc from opdcdetail where zid='"+#id+"' and xpreparer<>'system.zab' and xitem='"+xitem+"'")
+			set available=pendingqty+qty
+			double xdphqty=xqtyreq
+			double oldqty
+			double xqtydoc=xqtydoc
+			set fwh=opdcheader.xfwh("xdocnum='"+xdocnum+"'")
+			set xunit = caitem.xunitsel("xitem = '"+xitem+"'")
+			set cus=opdcheader.xcus("xdocnum='"+xdocnum+"'")	
+			set gcus = cacus.xgcus("xcus='"+cus+"'")
+			set item=#sql("select xitem from opdcdetail where xdocnum='"+xdocnum+"' and xitem='"+xitem+"'")
+			set activeitem = caitem.zactive("xitem='"+xitem+"'")		  
+			set date = #sql("select xdate from opdcheader where xdocnum='"+xdocnum+"' ")
+			set subcat = #sql("select xsubcat from opdcheader where xdocnum='"+xdocnum+"' ")
+			double inhand = #sql(double,"select xavail from imstock where xwh='"+fwh+"' and xitem='"+xitem+"'")	
+			
+			set xtornum=#sesql("select xtornum from opdcheader where zid='"+#id+"' and xdocnum='"+xdocnum+"'")
+			double sototqty=#sesql("select isnull(sum(xqtyreq),0) from imtordetail where zid='"+#id+"' and xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+			double totqty=#sesql("select isnull(sum(xqtydoc),0) from opdcdetail d join opdcheader h on d.zid=h.zid and d.xdocnum=h.xdocnum where h.zid='"+#id+"' and h.xtornum='"+xtornum+"' and d.xitem='"+xitem+"' and d.xdocnum<>'"+xdocnum+"'")
+			double onhandeqty=sototqty-totqty
+			//*********************Checking Min Price************************/
+			set cat=#sql("select xsubcat from opdcheader where xdocnum='"+xdocnum+"' and zid='"+#id+"'")
+			set itemcat=#sesql("select xsubcat from caitem where xitem='"+xitem+"' and zid='"+#id+"'")
+			set itemref=#sesql("select xitemtype from caitem where xitem='"+xitem+"' and zid='"+#id+"' ")
+			set iitem=#sql("select xitem from imtordetail where xtornum='"+xtornum+"' and xitem='"+xitem+"'")
+			set rowitem=#sesql("select xitem from opdcdetail where xdocnum='"+xdocnum+"' and xdocrow='"+xdocrow+"' and zid='"+#id+"'")
+			if rowitem .ne. xitem
+				error "Please Show First"	
+			else if activeitem .ne. "1"
+				error "Product is inactive!"
+			else if itemref .ne. xref
+				error "Product Description Not Matched!"
+			else if iitem .eq. ""
+				error "This Product Not Found in This Sales Order!"
+			// else if sototqty<totqty
+				// error "Cannot Proceed -- Quantity Exceded the SO Quantity"
+			else if xref .eq. "" 
+				error "Please Select Product Description!"	
+			else if onhandeqty<xqtydoc
+				error "Cannot Proceed -- Quantity Exceded the SO Quantity"
+			else if itemcat .ne. cat
+				error "Cannot Proceed -- Item Catagory Not Matched with : "+	itemcat
+			end if	
+			if xqtydoc<0.001
+				error "Please Enter Require Quantity" 
+			end if
+			
+			if xqtydoc>available
+			    error "Challan quantity cannot be bigger than Pending quantity"
+			end if
+			
+			
+			set date=#sql("select xdate from opdcheader where xdocnum='"+xdocnum+"'")
+				set wh=opdcheader.xfwh("xdocnum ='"+xdocnum+"'")
+				double avail = #sql("select xavail from imstockdc where xwh='"+fwh+"' and xitem='"+xitem+"'") //and cast(xdate as date)<=cast( '"+date+"' as date)
+				double ordqty = xqtydoc
+
+				double oldqty=#sql("select xqtydoc from opdcdetail where xdocnum='"+xdocnum+"' and xitem='"+xitem+"'")
+				
+				if xqtydoc <> oldqty
+					double chkqty=oldqty+avail
+					if chkqty < ordqty 
+						error "<font size=+2 color=white>Cannot Proceed -- Available Stock Is: "+avail+" Others May Be On Hold</font>"
+						// set temp = #sql("delete opdcdetail where xdocnum='"+xdocnum+"' and xdocrow="+xdocrow)
+					end if
+				end if			
+		end event				
+		event after
+				set bnprint = #sql("select xbnprintstatus from caitembonus where xitem='"+xitem+"' and xwh='"+wh+"'")
+				set temp = #sql("update opdcdetail set xbnprintstatus ='"+bnprint+"' where xitem='"+xitem+"'")
+					set temp = #spsql(zabsp_OP_validateAfterDetailDC,#id,#user,xdocnum,xdocrow,xitem,xqtydoc)
+		end event
+        end field
+		
+		field Delete
+			event before
+				set xdocnum=xdocnum
+				set xdocrow=xdocrow
+				set xitem=xitem
+				double xqtydoc=xqtydoc
+			end event
+				event after
+						set temp = #spsql(zabsp_OP_validateAfterDetailDC,#id,#user,xdocnum,xdocrow,xitem,xqtydoc)
+				end event
+			action show		  
+        end field
+		
+		
+
+		
+        embed onsubmit="submitit(this)"
+
+        field Return
+          embed onclick="clicked(this)"
+        end field
+
+     end form
+
+  jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        var result
+        function clicked(b){
+          detail=b.value
+        }
+		
+		window.onload = function() {
+			document.one.xitem.select();
+		}
+        function submitit(form){
+          result = true
+          if (detail=="Return"){
+            form.screen.value = "opdcheader"
+            form.searchbutton.value = "Find xdocnum=?"
+          }
+
+          detail = ''
+          return result
+        }
+		 function pickItem(link,xqty){
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xitem.value=link.text
+            document.one.xqtydoc.value=xqty.text
+            document.one.xdocrow.value=0				
+			//document.one.convertionunit.value=xqty.text
+			
+          }else{
+            document.one.xitem.value=link.innerText
+            document.one.xqtydoc.value=xqty.innerText
+            document.one.xdocrow.value=0			
+            //document.one.convertionunit.value=xqty.innerText
+          }
+          return false
+        }
+        </script>
+     end jscript
+
+
+end screen

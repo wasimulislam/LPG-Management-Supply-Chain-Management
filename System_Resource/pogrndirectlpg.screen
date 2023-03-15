@@ -1,0 +1,346 @@
+screen pogrndirectlpg 
+	sidebar list grn 
+	sections form one, jscript myscript
+ 
+	list grn
+		caption "LPG GRN Detail List for "+xgrnnum
+		table pogrndetail
+		order xgrnnum,xrow
+		fixed xgrnnum
+		maxwidth 550
+		rows 20
+		objects	xrow,~ //attrib(link "login?screen=pogrndetaildirectlpg&command=Show&xgrnnum=?&xrow=?"), ~
+				xitem,desc equals((select xdesc from caitem where zid=pogrndetail.zid and  xitem=pogrndetail.xitem)),~
+				xunitpur,xqtygrn 
+
+		headers "Row","Item","Description","Unit","Qty" 
+		totals "","","","Total",sum
+	end list
+   
+    form one
+        caption "LPG GRN (Local)"
+        table pogrnheader
+        order xgrnnum desc
+        return "login"
+		select "xtype='Direct'"
+        layout 2
+        pstyle 3
+        objects ~
+                Show,Clear,Add,Update,Delete,Top,Previous,Next,Bottom,Detail,Confirm,"<p>",~	//Transfer To GL,
+                xtrn,xgrnnum,xdate,xdategl display(hide),xcus,xorg,~
+                xwh,xwhdesc,xchallandate,xref,xstatusgrn display(const),~
+				xstatusap display(const),xstatusdoc display(const),xtypeobj display(const), ~
+				xvoucher display(hide),xpornum  display(hide),xnote,xnote1,,xstatusjv display(hide),~
+				xtype display(hide),xinvnum display(hide),~
+				xpkey display(hide) attrib(local),~
+				xsuperiorsp display(hide),xsuperior2 display(hide),xsuperior3 display(hide),~
+				signatorysec display(const),,,~
+				xpreparer display(hide),preparer display(const),~		
+				xsignatory1 display(hide),signatory1  display(const),~
+				xsignatory2 display(hide),signatory2 display(const),~
+				xsignatory3 display(hide),signatory3 display(const),~
+				xsignatory4 display(hide),signatory4 display(const),~
+				xsignatory5 display(hide),signatory5 display(const),~
+				xsignreject display(hide),signreject display(const)
+
+		field xtypeobj
+			caption Requisition Type
+			default "LPG"
+		end field
+		
+		field xstatusdoc
+			caption GRN Approval Status
+		end field
+		
+		field xtrn
+			//caption <br><FONT SIZE=2 COLOR=red>Transaction Type</font>
+			display hide //const	//combo //pick "GRN-,QC--"
+			default "GRN-"
+		end field
+		   	
+		field xgrnnum 
+			event after
+				class careports(getReport{pogrnprint;2;in,st;zid,grnnum;xgrnnum;Print GRN})
+				set globals(xgrnnum) = xgrnnum
+				set globals(xpornum)=xpornum
+				if xstatusgrn .eq. "Confirmed" 
+					//set #field(add.attrib)="disabled"
+					set #field(update.attrib)="disabled"
+					set #field(delete.attrib)="disabled"
+					set #field(confirm.attrib)="disabled" 
+				end if
+				if xstatusdoc .ne. "Open" .and.  xstatusdoc .ne. "Rejected"   .and.  xstatusdoc .ne. ""  
+					set #field(update.attrib)="disabled"
+					set #field(delete.attrib)="disabled"
+					set #field(confirm.attrib)="disabled" 
+				end if 
+			end event
+        end field
+		  
+		field xref
+			caption Challan No./Ref No.
+			width 30
+		end field
+		  
+		field xwh
+			pick list xwh
+			default #wh
+			caption Plant/Store
+		end field
+		  
+		field xwhdesc
+			attrib local
+			display const
+			caption Plant/Store Name
+			event after
+				set xwhdesc=xcodes.xlong("xtype='Branch' and xcode='"+xwh+"' and zactive=1")
+			end event
+		end field
+		
+        field xcus
+			pick list casuplocal		//casup
+			//default "PAR-000000"  
+			caption <FONT SIZE=2 COLOR=red>Supplier ID</font>
+        end field
+
+ 		field xorg
+			attrib local
+		  	display const
+		  	caption Supplier Name
+		  	event after
+		  		set xorg=cacus.xorg("xcus='"+xcus+"'")
+		  	end event
+		end field
+		 
+		field signatorysec
+		attrib local
+			caption <span class=sheader style="	BACKGROUND:#0480ba;	PADDING-BOTTOM: 5px;PADDING-LEFT: 10px; PADDING-RIGHT: 50px; 	PADDING-TOP: 2px;">Signatories</span>
+			display const 
+		end field
+		
+		field preparer
+			caption Preparer
+			attrib local
+			event after
+			if xpreparer .ne. ""
+				set preparer=pdmst.xname("xstaff='"+xpreparer+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xpreparer+"'")+", "+pdmst.xdeptname("xstaff='"+xpreparer+"'")+"</font>"
+			end if
+			end event
+        end field
+		
+		field signatory1
+			caption pick,"select xsignatory1 from pdsignatoryrpt where xtypetrn='GRN Approval'"
+			attrib local
+			event after
+				if xsignatory1 .ne. ""
+					set signatory1=pdmst.xname("xstaff='"+xsignatory1+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory1+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory1+"'")+"</font>"
+				end if
+			end event
+        end field
+		
+		field signatory2
+			caption pick,"select xsignatory2 from pdsignatoryrpt where xtypetrn='GRN Approval'"
+			attrib local
+			event after
+				if xsignatory2 .ne. ""
+					set signatory2=pdmst.xname("xstaff='"+xsignatory2+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory2+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory2+"'")+"</font>"
+				end if
+			end event
+        end field
+		 
+		field signatory3
+			caption pick,"select xsignatory3 from pdsignatoryrpt where xtypetrn='GRN Approval'"
+			attrib local
+			event after
+				if xsignatory3 .ne. ""
+					set signatory3=pdmst.xname("xstaff='"+xsignatory3+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory3+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory3+"'")+"</font>"
+				end if
+			end event
+        end field
+		
+		field signatory4
+			caption pick,"select xsignatory4 from pdsignatoryrpt where xtypetrn='GRN Approval'"
+			attrib local
+			event after
+				if xsignatory4 .ne. ""
+					set signatory4=pdmst.xname("xstaff='"+xsignatory4+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory4+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory4+"'")+"</font>"
+				end if
+			end event
+        end field
+		
+		field signatory5
+			caption pick,"select xsignatory5 from pdsignatoryrpt where xtypetrn='GRN Approval'"
+			attrib local
+			event after
+				if xsignatory5 .ne. ""
+					set signatory5=pdmst.xname("xstaff='"+xsignatory5+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignatory5+"'")+", "+pdmst.xdeptname("xstaff='"+xsignatory5+"'")+"</font>"
+				end if
+			end event
+        end field
+		
+		field signreject
+			caption Reject Signatory
+			attrib local
+			event after
+				if xsignreject .ne. ""
+					set signreject=pdmst.xname("xstaff='"+xsignreject+"'")+"<br><font SIZE=2>"+pdmst.xdesignation("xstaff='"+xsignreject+"'")+", "+pdmst.xdeptname("xstaff='"+xsignreject+"'")+"</font>"
+				end if
+			end event
+        end field	
+		
+		field show
+			event after
+				set xpkey=xgrnnum
+			end event
+        end field
+
+        field Add
+			event before
+				set xstatusdoc="Open"
+				set backdate=#sql("select xdateexp from acdef")
+				set backentry=#sql("select xbacklock from acdef")
+				set wh=branchclientview.xcode("xcode='"+xwh+"' and zactive=1 and xtypestore='GRN'")
+				set xdategl=xdate
+				int xday=#sql(int,"select xday from acdef")
+				set preventry=#sql("select xpreventry from acdef")
+				int cmon=#sub(#date,5,2)
+				int cyear=#sub(#date,0,4)
+				int eday=#sub(#date,8,2)
+				int eyear=#sub(xdate,0,4)
+				int emon=#sub(xdate,5,2)
+				set gsup=cacus.xgsup("xcus='"+xcus+"'")
+				//print gsup
+
+				if cyear>eyear .and. preventry .eq. "No"
+					error "Can not Proceed-- Previous Year entry not allowed."
+				else if cmon>emon .and. eday>xday .and. preventry .eq. "No"
+					error "Cannot Proceed------ Previous month entry not allowed."	 
+				else if xtrn .eq. ""
+					error "Please select Transaction Type" 
+				else if xcus .eq. ""
+					error "Please select Supplier" 
+				else if xwh .eq. "" .and. xtrn .eq. "GRN-"
+					error "Cannot Proceed - Store is Blank!"
+				else if wh .eq. "" .and. xtrn .eq. "GRN-"
+					error "Cannot Proceed - Store does not exist or It is not GRN Store!"
+				else if backentry .eq. "No" .and. xdate .le. backdate
+					error "Back Lock Entry not allowed!"
+				else if gsup .ne. "Local" 
+					error "Please select Local Supplier!"
+				//else if xdate .gt. #date
+					//error "Future Date not allowed!"
+				//else if xdate .lt. #date
+					//error "Back Date entry not allowed!"
+				else
+					set xinvnum=xref
+					set xstatusgrn = "Open"
+					set xstatusjv="Open"
+					set xstatusap="Open"
+					//set xwh = "01"
+					set xtype="Direct"
+					set xpreparer=pdmst.xstaff("xposition='"+#poisition+"'")
+					set xgrnnum = #trn("GRN Number",xtrn,10)
+					set xpkey=xgrnnum
+				end if
+			end event
+        end field
+		
+        field Update
+			event before
+				set backdate=#sql("select xdateexp from acdef")
+				set backentry=#sql("select xbacklock from acdef")
+				set wh=branchclientview.xcode("xcode='"+xwh+"' and zactive=1 and xtypestore='GRN'")
+				set xdategl=xdate
+				int xday=#sql(int,"select xday from acdef")
+				set preventry=#sql("select xpreventry from acdef")
+				int cmon=#sub(#date,5,2)
+				int cyear=#sub(#date,0,4)
+				int eday=#sub(#date,8,2)
+				int eyear=#sub(xdate,0,4)
+				int emon=#sub(xdate,5,2)
+				set gsup=cacus.xgsup("xcus='"+xcus+"'")
+			
+				if xpkey .ne. xgrnnum
+					error "Please press show first!" 
+				else if cyear>eyear .and. preventry .eq. "No"
+					error "Cannot Proceed-- Previous Year entry not allowed." 
+				else if cmon>emon .and. eday>xday .and. preventry .eq. "No"
+					error "Cannot Proceed------ Previous month entry not allowed."	 
+				else if xwh .eq. "" .and. xtrn .eq. "GRN-"
+					error "Cannot Proceed - Store is Blank!"
+				else if wh .eq. "" .and. xtrn .eq. "GRN-"
+					error "Cannot Proceed - Store does not exist or It is not GRN Store!"
+				else if pogrnheader.xstatusgrn("xgrnnum='"+xgrnnum+"'") .ne. "Open"
+					error "GRN Already Confirmed!"
+				else if backentry .eq. "No" .and. xdate .le. backdate
+					error "Back Lock Entry not allowed!"
+				else if gsup .ne. "Local" 
+					error "Please select Local Supplier!"
+				//else if xdate .gt. #date
+					//error "Future Date not allowed!"
+				//else if xdate .lt. #date
+					//error "Back Date entry not allowed!"
+				end if
+			end event
+        end field		
+  
+        field xnote
+			caption Remarks
+			//width 80
+			column 2
+        end field
+		
+        field xnote1
+			caption Reject Note
+			display const
+        end field
+   
+        field Confirm
+			event before
+				double grnqty=#sql("select sum(xqtygrn) from pogrndetail where xgrnnum='"+xgrnnum+"'")
+				set wh=pogrnheader.xwh("xgrnnum='"+xgrnnum+"'")
+				if grnqty <0.01
+					error "Please add detail!"
+				else if xstatusap .eq. "Confirmed"
+					error "Cannot Proceed - GRN Already Confirmed"
+				//else if wh .eq. ""
+				//  error "Cannot Proceed - Store is Blank"
+				else if pogrnheader.xref("xgrnnum='"+xgrnnum+"'") .eq. ""
+					error "Can not Proceed - Please Write Challan/Ref No!"
+				else if pogrnheader.xchallandate("xgrnnum='"+xgrnnum+"'") .eq. ""
+					error "Can not Proceed - Please Write Challan Date!"
+				end if    
+			end event
+			event after 
+				set temp =  #spsql(zabsp_Confirmed_Request,#id,#user,#position,xwh,xgrnnum,"GRN")
+				action show
+			end event
+        end field
+
+        embed onsubmit="return submitit(this)"
+
+        field Detail
+          embed onclick="clicked(this)"
+        end field
+		  
+    end form
+
+    jscript myscript 
+        <script language="javascript" type="text/javascript">
+        var button
+        var result
+        function clicked(b){
+          button=b.value
+        }
+        function submitit(form){
+          result = true
+          if (button=="Detail"){
+            form.screen.value = "pogrndetaildirectlpg"
+            form.searchbutton.value = "Top"
+          } 
+          return result
+        }
+        </script>
+    end jscript
+
+end screen

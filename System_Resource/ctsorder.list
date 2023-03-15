@@ -1,0 +1,16 @@
+     list ctsorder
+        caption "Invoice containing: "+zvalue
+        table ctsheader
+        order xdornum desc
+        select "(xdornum like '%"+zvalue+"%' or xdocnum like '%"+zvalue+"%' or xcus like '%"+zvalue+"%' or order_detail_id like '%"+zvalue+"%'    )"
+        rows 35
+		searchselect "left(xdornum,3)='CTS'"
+        objects xdornum attrib(link "abc" embed onclick="return updateParent(this:'')"),xdocnum,xcus,xcusold,xdate,order_main_id,order_detail_id
+		
+		//header "Invoice number","Date","Customer ID","Company","SO Number","Reference"
+		
+		//xdornum,xdocnum,xcusold,xcus,xdate,xtruckno,xplantno display(h),truckStatusId display(h),order_main_id
+
+     end list
+
+

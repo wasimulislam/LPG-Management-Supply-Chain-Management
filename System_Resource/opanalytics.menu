@@ -1,0 +1,38 @@
+//opanlytics.menu
+//-------------------------------------------------------------------
+option                           			|action
+//-------------------------------------------------------------------
+Daily Sales Report           |#classPath+"/login?screen=*viewcrystal dailysales(10;in,st,st,st,st,st,st,st,st,st;@zid,@cus,@gcus,@subcat,@territory,@area,@district,@thana,@year,@per;xrptcus=Customer Code,xgcus=Customer Group,xsubcat=Sub Category,xterritoryop=Territory,xareaop=Area,xdistrictop=District,xthanaop=Thana,xyear=Year=,xcntrecurs=Month=,xviewtype=Report View)"
+
+Monthly Sales Report         |#classPath+"/login?screen=*viewcrystal monthlysales(9;in,st,st,st,st,st,st,st,st,st;@zid,@cus,@gcus,@subcat,@territory,@area,@district,@thana,@year;xrptcus=Customer Code,xgcus=Customer Group,xsubcat=Sub Category,xterritoryop=Territory,xareaop=Area,xdistrictop=District,xthanaop=Thana,xyear=Year=,xviewtype=Report View)"
+
+Sales Comprehention Report              |#classPath+"/login?screen=*viewcrystal salescomparison(10;in,st,st,st,st,st,st,st,st,st;@zid,@cus,@division,@area,@territory,@district,@thana,@tso,@per,@year;xrptcus=Customer Code,xdivisionop=Division,xareaop=Area,xterritoryop=Territory,xdistrictop=District,xthanaop=Thana,xtso=TSO,xcntrecurs=Month=,xyear=Year=,xviewtype=Report View)"
+
+Customer Profile Report                 |#classPath+"/login?screen=*viewcrystal customerprofile(3;in,st,st;@zid,@cus,@year;xcus=Distributor Code,xyear=Year=,xviewtype=Report View)"
+
+Day End Cylinder Gas Sales Report          	|#classPath+"/login?screen=*viewcrystal opsalesanalytic(2;in,st;@zid,@tdate;xdate=To Date=#date,xviewtype=Report View)"
+
+Customer Wise Sales Summary Report          |#classPath+"/login?screen=*viewcrystal cacuswisesales(10;in,st,st,st,st,st,st,st,st,st;@zid,@cus,@gcus,@subcat,@area,@territory,@district,@thana,@fdate,@tdate;xcus=Customer Code,xgcus=Customer Group,xrptsubcat=Sub Category,xareaop=Area,xterritoryop=Territory,xdistrictop=District,xthanaop=Thana,xdate=From Date=#date,xdate=To Date=#date,xviewtype=Report View)"
+
+Customer Wise LPG Cylinder Sales Report    |#classPath+"/login?screen=*viewcrystal cacuslpgsales(9;in,st,st,st,st,st,st,st,st;@zid,@cus,@gcus,@area,@territory,@district,@thana,@fdate,@tdate;xcus=Customer Code,xgcus=Customer Group,xareaop=Area,xterritoryop=Territory,xdistrictop=District,xthanaop=Thana,xdate=From Date=#date,xdate=To Date=#date,xviewtype=Report View)"
+
+
+//Customer Wise LPG Cylinder Sales Report     |#classPath+"/login?screen=*viewcrystal cacuswiseLPGsalesnew(6;in,st,st,st,st,st;@zid,@cus,@gcus,@ptype,@fdate,@tdate;xcus=Customer //Code,xgcus=Customer Group,xitemtype=Product Description Type,xdate=From Date=#date,xdate=To Date=#date,xviewtype=Report View)"
+
+Sales Summary by Cylinder Category		   	|#classPath+"/login?screen=*viewcrystal opsalessummerybyfacat(11;in,st,st,st,st,st,st,st,st,st,st;@zid,@cus,@gcus,@ptype,@stype,@area,@territory,@district,@thana,@fdate,@tdate;xcus=Customer Code,xgcus=Customer Group,xrfacat=Cylinder Category,xitemtype=Product Description Type,xareaop=Area,xterritoryop=Territory,xdistrictop=District,xthanaop=Thana,xdate=From Date=#date,xdate=To Date=#date,xviewtype=Report View)"
+
+//Customer Wise Sales Report ( All Category) 				|#classPath+"/login?screen=*viewcrystal cacuswisetotsales(6;in,st,st,st,st,st;@zid,@cus,@gcus,@subcat,@fdate,@tdate;xcus=Customer Code,xgcus=Customer Group,xsubcat=Sub Category,xdate=From Date=#date,xdate=To Date=#date,xviewtype=Report View)"
+
+
+
+Territory Sales Summary (Cylinder Wise) 	|#classPath+"/login?screen=*viewcrystal opsalesterritarget(4;in,st,in,in;@zid,@ctype,@per,@year;xrfacat=Cylinder Category,xcntrecurs=Month,xyear=Calendar Year,xviewtype=Report View)"
+
+//-------------------------------------------------------------------
+
+
+
+
+
+
+
+

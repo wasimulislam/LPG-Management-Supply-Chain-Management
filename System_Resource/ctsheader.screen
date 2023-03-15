@@ -1,0 +1,445 @@
+screen ctsheader 
+
+  sidebar list movement
+  sections form one ,list detail  , jscript myscript //,list summaryOP,list opsalesumlist,three1
+
+    list movement
+    caption "<< Barcode Movement Count >>"
+    table BarcodeMovementView
+		primarykey zid,product_code,operation_type,xtype,order_detail_id,deviceCode,xnum
+    
+	maxwidth 400
+   
+ select "order_detail_id='"+order_detail_id+"' "
+
+    dtlengthmenu [100, -1], [100, "All"]
+    rows 100
+
+     objects  product_code,operation_type,deviceCode,xtype,order_detail_id,xnum
+
+ headers "Product Code ","Operation Type","Device Code","Operation Description","Order Detail ID" ,"Count" //,"","Opration Status"
+ 
+  end list
+
+    list detail
+    caption "<< CTS ORDER List >>"
+    table ctsheader
+		primarykey xdornum
+
+       // order xdornum 
+	maxwidth 1200
+ // select " (xdocnum>=(CASE when '"+docnum+"'='' then '' else '"+docnum+"' end) AND xdocnum<=(CASE when '"+docnum+"'='' then 'z' else '"+docnum+"' end)) or (xcusold>=(CASE when '"+dealer+"'='' then '' else '"+dealer+"' end) AND xcusold<=(CASE when '"+dealer+"'='' then 'z' else '"+dealer+"' end)) "
+ // select " xdornum<>'' "
+
+    dtlengthmenu [100, -1], [100, "All"]
+    rows 100
+
+     objects  xdornum attrib(link "login?screen=ctsheader&command=Show&xdornum=?"),xdocnum,order_main_id,order_detail_id,xdate,~
+	  productCode1 ,pC1EmptyQuantity,pC1FilledQuantity,pC1SystemQuantity,~ 
+	  productCode2 ,pC2EmptyQuantity,pC2FilledQuantity,pC2SystemQuantity,~
+	 productCode35kg22mm ,pc35kg22mm_empty_quantity,pc35kg22mm_filled_quantity,pc35kg22mm_system_quantity //,~
+	// productCode35kg20mm ,pc35kg20mm_empty_quantity,pc35kg20mm_filled_quantity,pc35kg20mm_system_quantity,~
+	// productCode45kg22mm ,pc45kg22mm_empty_quantity,pc45kg22mm_filled_quantity,pc45kg22mm_system_quantity,~
+	// productCode45kg20mm ,pc45kg20mm_empty_quantity,pc45kg20mm_filled_quantity,pc45kg20mm_system_quantity
+
+//headers "CTS Order No","Reference No","Order Main ID","Order Detail ID" ,"Create Date" //,"","Opration Status"
+ 
+  end list
+
+
+  form one
+    caption "CTS Order Detail For Transaction :"+xdocnum
+    table ctsheader
+		primarykey xdornum
+        table ctsheader
+        order xdornum 
+
+        return "login"
+    pstyle 3
+    layout 7
+    return "login"  //Barcode_Movement_Detail
+
+    objects Show,Clear,Top,Next,Previous,Bottom,Barcode_Movement_Detail,Send_To_CTS,Pull_From_CTS,~ //,Delete,Confirm_Shrinkage,Confirm_Damage,Update,Show *next,Top,Previous,Next,Bottom,Day_End_Summary
+     xdornum,xdocnum,xcusold,xcus,xdate,xtruckno,xplantno display(h),truckStatusId display(h),order_main_id,~
+	  xitem,xitemdesc,productCode1 ,pC1EmptyQuantity,pC1FilledQuantity,pC1SystemQuantity,~
+	 ,xitem2,xitemdesc2,productCode2 ,pC2EmptyQuantity,pC2FilledQuantity,pC2SystemQuantity,~
+	 ,xitem3,xitemdesc3,productCode35kg22mm ,pc35kg22mm_empty_quantity,pc35kg22mm_filled_quantity,pc35kg22mm_system_quantity,~
+	 ,xitem4,xitemdesc4,productCode35kg20mm ,pc35kg20mm_empty_quantity,pc35kg20mm_filled_quantity,pc35kg20mm_system_quantity,~
+	 ,xitem5,xitemdesc5,productCode45kg22mm ,pc45kg22mm_empty_quantity,pc45kg22mm_filled_quantity,pc45kg22mm_system_quantity,~
+	 ,xitem6,xitemdesc6,productCode45kg20mm ,pc45kg20mm_empty_quantity,pc45kg20mm_filled_quantity,pc45kg20mm_system_quantity ,xsync display(h),~
+	 order_detail_id
+
+
+
+
+        field xdornum
+          caption CTS Order No:
+        pick list ctsorder
+          event after
+		 // set global(xdornum)=xdornum
+        set global(order_detail_id)=order_detail_id
+		     if ctsheader.xsync(" xdornum='"+xdornum+"' ") ==1 //.and. //xstatusar .eq. "Confirmed"
+		         	set #field(Send_To_CTS.attrib)="disabled"
+       	      end if
+		     if xdornum .eq. ""
+		         	//set #field(Barcode_Movement_Detail.attrib)="disabled"
+		         	set #field(Send_To_CTS.attrib)="disabled"
+		         	set #field(Pull_From_CTS.attrib)="disabled"
+					
+					
+       	      end if		
+		
+          end event
+        end field
+
+
+
+        field xcusold
+          caption Dealer Code
+        
+          event after
+          
+          end event
+        end field
+
+        field xcus
+          caption Dealer Code(CTS) 
+        display const
+          event after
+          
+          end event
+        end field
+
+
+        field xplantno
+          caption Plant ID
+        
+          event after
+          
+          end event
+        end field
+
+        field xitem
+          caption Product Code 1
+        
+          event after
+          
+          end event
+        end field
+
+
+        field xitemdesc2
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc2=caitem.xdesc("xitem='"+xitem2+"'")
+          end event
+        end field
+
+
+        field xitemdesc3
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc3=caitem.xdesc("xitem='"+xitem3+"'")
+          end event
+        end field
+
+
+        field xitemdesc4
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc4=caitem.xdesc("xitem='"+xitem4+"'")
+          end event
+        end field
+
+
+        field xitemdesc5
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc5=caitem.xdesc("xitem='"+xitem5+"'")
+          end event
+        end field
+
+
+        field xitemdesc6
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc6=caitem.xdesc("xitem='"+xitem6+"'")
+          end event
+        end field
+
+
+
+        field xitemdesc
+          caption Product Name
+          attrib local
+          display const
+          event after
+            set xitemdesc=caitem.xdesc("xitem='"+xitem+"'")
+          end event
+        end field
+
+
+  field xdum4
+    attrib local
+    display const
+    caption <font color=Blue size=+2>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Day End Adjustment >>  </font>
+
+    //column 
+  end field
+
+    field Search
+      
+    event before
+
+     set docnum=xdocnum
+
+     set dealer=xcusold
+
+    end event
+    event after 
+        // set xdocnum=ctsheader.xdocnum("xdornum='"+xdornum+"'")
+		// set xdornum=xdornum
+        // set globals(docnum)=docnum
+        // set globals(dealer)=dealer
+		
+		action show
+    end event
+
+    end field
+	
+    field show
+      
+    event before
+//	set xdocnum=ctsheader.xdocnum("xdornum='"+xdornum+"'")
+    end event
+    event after 
+    end event
+
+    end field
+	
+	
+	
+    field xdocnum
+      caption Transaction NO:
+	  pick list xsocts
+    event after 
+       
+    end event
+
+    end field 
+	
+    field Pull_From_CTS
+    event before 
+     int ctsid=0
+     int ckpull=0
+	 
+	 if xdocnum .eq. ""
+	 set ctsid=ctsheader.order_main_id(" xdornum='"+xdornum+"' ") 
+	 else if ctsid==0
+	 set ctsid=#sql(int,"select convert(int, right('"+xdornum+"',6) ) from zbusiness")
+	 set pull=#sql(int,"select convert(int, pull ) from zbusiness")
+	 end if
+	 
+        set temp = #spsql(UpdateDataCTS2ZAB,#id,"Service Check",xdornum,xdornum)	
+        if ctsheader.xstatus(" xdornum='"+xdornum+"' ") .eq. "503 Service Unavailable"
+			error "503 Service Unavailable"
+            else
+             set temp = #spsql(UpdateDataCTS2ZAB,#id,"Network Check",xdornum,xdornum)	
+		       if ctsheader.xmessage(" xdornum='"+xdornum+"' ") .eq. "Request timed out.Server Is Not Connected with the Source Server!"
+	              error "Request timed out.Server Is Not Connected with the Source Server!"
+		        end if		   
+        end if
+
+	 
+	 
+    end event
+    event after 
+	//print ctsid
+	//EXEC UpdateDataCTS2ZAB 200010,'PullOrderById',1
+       set temp = #spsql(UpdateDataCTS2ZAB,#id,"PullOrderById",ctsid,xdornum)
+	   
+	   set ckpull=ctsheader.pull(" xdornum='"+xdornum+"' ") 
+	  //ckpull=#sql("select pull from ctsheader where xdornum='"+xdornum+"'  ")
+	  if ckpull ==1
+	  print "Data Pull Process Successfully Executed ! "
+	  else if ckpull == 9
+	  print "<font color=red> Server Is Unreachable , Please Try Again ! </font> "
+	  end if 
+	  // print ckpull
+	   
+	   action show
+    end event
+
+    end field 
+	
+    field Send_To_CTS
+    event before 
+         int ck=0
+	 set ctsid=#sql(int,"select convert(int, right('"+xdornum+"',6) ) from zbusiness")
+		   set ck=ctsheader.xsync(" xdornum='"+xdornum+"' ") 
+	  //ckpull=#sql("select pull from ctsheader where xdornum='"+xdornum+"'  ")
+	if ck ==1
+	   error "Already Synced ! "
+	  else 
+          set temp = #spsql(UpdateDataCTS2ZAB,#id,"Service Check",xdornum,xdornum)	
+        if ctsheader.xstatus(" xdornum='"+xdornum+"' ") .eq. "503 Service Unavailable"
+			error "503 Service Unavailable"
+            else
+             set temp = #spsql(UpdateDataCTS2ZAB,#id,"Network Check",xdornum,xdornum)	
+		       if ctsheader.xmessage(" xdornum='"+xdornum+"' ") .eq. "Request timed out.Server Is Not Connected with the Source Server!"
+	              error "Request timed out.Server Is Not Connected with the Source Server!"
+		        end if		   
+        end if
+   
+
+   
+	end if 
+    end event
+    event after 
+	//print ctsid
+	//--EXEC UpdateDataCTS2ZAB 200010,'OrderMainCreate','CTS000119'
+       set temp = #spsql(UpdateDataCTS2ZAB,#id,"OrderMainCreate",xdornum)
+	   
+	    set ck=ctsheader.xsync(" xdornum='"+xdornum+"' ") 
+	  if ck ==1
+	  print "Successfully Synced !"
+	  else if ck == 9
+	      print "<font color=red> Server Is Unreachable , Please Try Again ! </font> "
+	  end if 
+	   action show
+    end event
+
+    end field 
+
+
+
+
+
+    embed onsubmit="return submitit(this)"
+
+    field Barcode_Movement_Detail
+      embed onclick="clicked(this)"
+    end field
+
+
+  end form
+
+  jscript myscript
+  
+ <style>
+// body { visibility: hidden; display: none };
+	
+// .printable { display:none; };
+// @media only print {
+    // .container { display:none !important; } 
+    // .printable { display:block !important; } 
+// };	 
+// .custombutton {
+
+
+  // border-radius: 40px;
+  // color: #fff;
+  // font-weight: bold;
+  // font-size: 24px;
+  // letter-spacing: 1px;
+  // display: flex;
+  // align-items: center;
+  // justify-content: center;
+  // flex-direction: column;
+  // cursor: pointer;
+  
+  // .custombutton {
+    // position: absolute;
+    // opacity: 0;
+    // transform: translateY(-20px);
+    // transition: all .2s;
+  // }
+// }
+
+// .custombutton:hover {
+    // BACKGROUND: Turquoise;
+// }
+
+.alert alert-info text-center {
+// width: 50px;
+// padding: 4px;
+// margin: 4px;
+// border: 1px solid #000;
+// text-align: center;
+
+width:100%;
+position:relative;
+left:10px;
+background-color:white
+
+}
+
+</style> 
+  
+  
+
+        <script language="javascript" type="text/javascript">
+        var but = ""
+        function clicked(b){
+          but = b.value
+        }
+
+
+
+$(document).ready(function() {
+
+});
+
+window.onload = function(){
+
+    var btn = document.getElementById("Send_To_CTS");
+    var btn2 = document.getElementById("Pull_From_CTS");
+    var btn3 = document.getElementById("Search");
+    var btn4 = document.getElementById("Barcode_Movement_Detail");
+	
+    // if(localStorage["bg-color"]){
+        // btn.style.backgroundColor = localStorage.getItem("bg-color");
+    // };
+
+        // if(!localStorage["bg-color"]){
+            // localStorage.setItem("bg-color", "orange");
+        // };
+		
+        btn.style.backgroundColor = "Turquoise"//localStorage.getItem("bg-color");
+        btn2.style.backgroundColor = "Turquoise"//localStorage.getItem("bg-color");		
+        btn3.style.backgroundColor = "Turquoise"//localStorage.getItem("bg-color");
+        btn4.style.backgroundColor = "Turquoise"//localStorage.getItem("bg-color");
+
+    // remove from storage localStorage.removeItem("bg-color")
+};
+
+    function submitit(form){
+
+      if (but=="Barcode_Movement_Detail"){
+            form.screen.value = "ctsdetail"
+         // form.searchbutton.value = "Top"
+            //return false
+          }
+
+
+}        
+
+        </script>
+     end jscript
+
+end screen
+
+
+
+

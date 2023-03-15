@@ -1,0 +1,9 @@
+//Accounts Mapping Reports.menu
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Item Group Mapping with GL 		  |#classPath+"/login?screen=*viewcrystal caitemgrpmpwgl(2;in,st;zid,type;xitemgrptype=Group Type,xviewtype=Report View)"
+GL Mapping of Material Consumption(General)	  |#classPath+"/login?screen=*viewcrystal caconsmtnitemglmaping(1;in;zid;xviewtype=Report View)"
+
+
+//Transitory Accounts Mapping						|#classPath+"/login?screen=actransitory"

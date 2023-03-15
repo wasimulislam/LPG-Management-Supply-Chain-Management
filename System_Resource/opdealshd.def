@@ -1,0 +1,21 @@
+product ZAB ERP
+
+table opdealshd
+  caption "Customer Closing Header"
+  columns ztime,zutime,zauserid,zuuserid,zid,xcrnnum,xdate,xcus,xorg,~
+          xstatuscrn,xref,xwh,xtotamt,xordernum,xstatusar,xcur,xexch,~
+          xyear,xper,xamount,xait,xvatrate,xdisc,xdiscf,xsp,xvatamt,xdiscamt,~
+		  xaitamt,xfm,xsm,xrsm,xpp,xtype,xstatusjv,xvoucher,xpaymenttype,~
+		  xnote,xstatus,xpreparer,xsignatory1,xsigndate1,xsignatory2,xsigndate2,xsignatory3,xsigndate3,~
+		  xsignatory4,xsigndate4,xsignatory5,xsigndate5,xsignatory6,xsigndate6,xsignatory7,xsigndate7,xidsup,~
+		  xsuperior2,xsuperior3,xsignreject,xdatereject,xstatusap,xvatstatus,xstaff,xstatusdc,xtso,xsubcat,~
+		  xdivisionop,xthanaop,xdistrictop,xpaymentterm,xarea,xterritory,xnote1,xdepositvoucher,xsync,xiscomplete
+
+
+
+  primary key zid, xcrnnum
+  foreign key
+        zid references zbusiness.zid
+//        zid,xcus references cacus.zid,xcus
+  end foreign key
+end table

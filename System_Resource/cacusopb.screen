@@ -1,0 +1,464 @@
+screen cacusopb
+     sidebar list cusap,list one,list two
+     sections  form one,jscript myscript
+
+  list cusap
+        caption "Pending List Send for Approval"
+        table cacus
+		maxwidth 570
+        order xcus desc
+		select "xstatus='Open' and xtype='Customer' and xsubcat='Bulk LPG'"
+        rows 50
+        objects  xcus attrib(link "login?screen=cacusopb&command=Show&xcus=?"),~
+                 xorg,xgcus,xterritory,xstatus
+       headers "Customer ID","Name","Group","Territory","Status" 
+     end list
+  list one
+    caption "Special Discount List"
+    table cacusdisc
+	maxwidth 570
+    order xcus,xitem
+    fixed xcus
+    rows 20
+    objects  xitem attrib(link "login?screen=cacusdiscupdateb&command=Show&xcus=?&xitem=?"), ~
+             desc equals((select xdesc from caitem where zid=cacusdisc.zid and xitem=cacusdisc.xitem)),xdisc,xdiscf,xdateeff,xdateexp
+	headers "Item","Description","Discount","Fixed Discount","Effective Date","Exp. Date"
+  end list
+  
+  list two
+    caption "Special Rate List"
+    table cacusprice
+	maxwidth 570
+    order xcus,xitem
+    fixed xcus
+    rows 20
+    objects  xrow attrib(link "login?screen=cacuspriceupdateb&command=Show&xcus=?&xitem=?&xrow=?"),xitem, ~
+             desc equals((select xdesc from caitem where zid=cacusprice.zid and xitem=cacusprice.xitem)),xrate,zactive
+	headers "Row","Item","Description","Rate","Active"
+  end list
+  
+     form one
+        caption "Customer Master - Bulk LPG"
+      	table cacus
+        primarykey xcus
+        order xcus
+	   select "xtype='Customer' and xsubcat='Bulk LPG'"
+        return "login"
+        layout 3
+        pstyle 3
+        objects Add,Update,Show,Clear,Top,Previous,Next,Bottom,Credit Info,Special_Rate,Special_Bonus,Confirm,"<p>" ,~//Sales Location,Project Flag,Special_Bonus,Special_Discount,
+            xcus,xorg,xmadd,xcontact,xdesignation display(text),xphone,xfax,xemail,xsubcat,xgcus,xfield display(hide),~
+			xsupcat,xcustype,xcuscomptype,xterritory,xso,xsoname,xthana,xdistrict,xareaop display(const),xdivisionop display(const),xsp display(hide),~
+			xmarket display(hide),xroute display(hide),~
+            xpaymentterm,~
+		    xinvtoinvcr display(hide),xcrterms display(hide),xcrlimit display(hide),~
+		    xdateeff display(hide),xdateexp display(hide),~
+		    xref display(hide),~
+            xallowcrinv display(hide),xallbndisc display(hide),~
+            xstatuscus display(hide),xwh display(hide)~
+			xmobile,~
+		    xdisc,xdiscdetamt,~
+		    xdelicontact,xdelicontactphn,xdeliloc,xtype display(hide),xtransshipment,xvatregno,xtin,xnid,xstatus display(const),xnote1//,zactive
+			
+	field xvatregno
+		caption Bin No
+		display text
+		height 1
+	end field
+	
+	field xmadd
+		width 22
+	end field
+	
+	field xstatuscus
+		default "Open"
+	end field
+	
+	field xtransshipment
+		caption Transport
+		display text
+	end field
+	
+	field xsubcat
+	display const
+		// caption <FONT SIZE=2 COLOR=red>Sales Category</font> 
+		// pick "select xcode from xcodes where xtype='Sub Category'"
+	end field
+	
+	field xpaymentterm
+		caption <FONT SIZE=2 COLOR=red>Payment Term</font>
+		default ""
+		pick "Cash,Credit"
+	end field
+	
+	field xcontact
+		display text
+	end field
+	
+	field xdesignation
+		display text
+		width 40
+		pick
+	end field
+	
+	field xphone
+		display text
+	end field
+	
+	field xfax
+		display text
+	end field
+	
+	field xdeliloc
+		display area
+		width 30
+		pick
+	end field
+	
+	field xsupcat
+		Caption Customer Category
+		pick code
+	end field
+	
+	field xcustype
+		display combo
+		Caption Customer Type
+		pick code
+	end field
+
+       field xcus
+	   pick list cacusopb
+		event after
+			set globals(xcus)=xcus
+			set sttat = #sql("select xstatus from cacus where xcus='"+xcus+"'")
+			if sttat .ne. "" .and. sttat .ne. "Open" .and. sttat .ne. "Rejected"
+         		set #field(Confirm.attrib)="disabled"
+       	    end if
+			if  sttat .eq. "Applied"
+         		set #field(Credit.attrib)="disabled"
+         		set #field(Special_Rate.attrib)="disabled"
+         		set #field(Special_Bonus.attrib)="disabled"
+         		set #field(Confirm.attrib)="disabled"
+       	    end if
+			if sttat .eq. "Approved" .or. sttat .eq. "Rejected"
+         		set #field(Confirm.attrib)="disabled"
+       	      end if
+			if xcus .eq. ""
+				set #field(Confirm.attrib)="disabled"
+       	    end if
+		end event
+	    end field
+
+	    field xterritory
+		display text
+		caption <FONT SIZE=2 COLOR=red>Territory</font> 
+		pick list opterritoryb
+		end field
+		
+		field xthana
+		caption Thana
+		pick list xcodesthana
+	    end field
+		
+		field xgcus
+		caption <FONT SIZE=2 COLOR=red> Customer Group</font> 
+		end field
+	
+		field xdistrict
+		caption District
+		display const
+		pick list xcodesdistrict
+	    end field
+ 	
+	    field xnote1
+		weight 90
+		height 2
+		column 2
+	    end field
+ 	
+	    field xdateeff
+		default #date
+	    end field
+
+	    field xdateexp
+		default "2979-01-01"
+	    end field
+
+	    field xdum
+		attrib local
+		caption 
+		display const
+	    end field
+
+	    field xsp
+		caption SRO Code
+		pick list caspsro
+	    end field
+
+	    field xspname
+		attrib local
+		caption SRO Name
+		display const
+		event after
+			set xspname = cappo.xname("xsp='"+xsp+"' and xtype='SRO'")
+		end event
+	    end field
+		
+		field xso
+		caption <FONT SIZE=2 COLOR=red>TSO Code</font> 
+		display const
+		event after
+			set xso = cappo.xsp("xtype='TSO' and xterritory='"+xterritory+"' and xsubcat='"+xsubcat+"' and zactive='1'")
+		end event
+	    end field
+
+	    field xsoname
+		attrib local
+		caption TSO Name
+		display const
+		event after
+			set xsoname = cappo.xname("xsp='"+xso+"'")
+		end event
+	    end field
+
+	    field xprjname
+		attrib local
+		caption Project Name
+		display const
+		event after
+			set xprjname = xcodes.xlong("xtype='Project Flag' and xcode='"+xproject+"'")
+		end event
+	    end field
+
+		field xwh
+            default #wh
+           end field
+
+          field xmarket
+		//display const
+            pick "select xcode from xcodes where xtype='Market' and xwh='"+#wh+"'"
+          end field
+
+
+       field xbrname
+        attrib local
+        caption Branch Name
+        display const
+        event after
+        set xbrname=xcodes.xlong("xtype='Branch' and xcode='"+xwh+"'")
+        end event
+       end field
+ 
+
+    field add
+      event before
+	  set xsubcat="Bulk LPG"
+	  set xpreparer = #position
+	  set xdistrict = xcodes.xdistrictop("xtype='OP Thana' and xtypeobj='Thana' and xcode='"+xthana+"' and zactive='1'")  
+
+	   set org=cacus.xorg("xcus='"+xcus+"' and xtype='Customer'")
+	   set sro=cappo.xsro("xsp='"+xso+"' and xtype='TSO'")
+	   set xstatus="Open"
+	   if xterritory .ne. ""
+	   set terrtry=xcodes.xcode("xtype='OP Territory' and xtypeobj='Territory' and xcode='"+xterritory+"' and zactive='1'")   
+		set tso=cappo.xsp("xterritory='"+terrtry+"' and xsubcat='"+xsubcat+"' and zactive='1' and xtype='TSO'")
+		set xso=tso
+	   end if
+	   
+	   set tofficer=cappo.xsp("xsp='"+xso+"'")
+
+	   
+        if xgcus .eq. ""
+          error "Cannot Proceed -- Please Choose Customer Group!"
+        else if xorg .eq. ""
+          error "Cannot Proceed -- Customer Description is Blank!"
+		else if org .eq. xorg
+			 error "Cannot Proceed -- Duplicate Customer does not Allow!"
+		else if tofficer .eq. "" 
+			error "Cannot Proceed -- TSO not Found !"
+        else if xpaymentterm .eq. "" 
+			error "Cannot Proceed -- Please Choose Payment Term !"
+        // else if  xthana .eq. "" 
+			// error "Please selet Thana !"
+        //*********** GETTING TRN NO ****************
+        
+		else	  
+	  	  set xstatuscus="Open"	
+ 	  	  set xallowcrinv="Yes"
+	  	  set xallbndisc="No"
+		  set xtype="Customer"
+		  set zactive=1
+          set trn = "CUSB"
+          set xcus = #trn("Customer Code",trn,10)
+        end if
+		
+      end event
+	  event after	  
+	   set temp=#sesql("update b set b.xterritory=c.xterritory,b.xareaop=c.xarea from cacus b join cappo c on c.xsp=b.xso  where c.xtype='TSO' and c.xsp='"+tofficer+"' and c.xsubcat='"+xsubcat+"' and c.zid='"+#id+"' ")  
+	   set temp=#sesql("update b set b.xdivisionop=a.xdivisionop from xcodes a join cacus b on b.xterritory=a.xcode and b.zid=a.zid where  b.xcus='"+xcus+"' and b.zid='"+#id+"' and  a.xtype='OP Territory' and a.xtypeobj='Territory' and isnull(b.xterritory,'')<>'' ")
+	
+	  action show
+	  end event
+    end field
+
+    field update
+        event before
+		set xtype="Customer"
+		set xdistrict = xcodes.xdistrictop("xtype='OP Thana' and xtypeobj='Thana' and xcode='"+xthana+"' and zactive='1'")
+		
+			   
+	   if xterritory .ne. ""
+	   set terrtry=xcodes.xcode("xtype='OP Territory' and xtypeobj='Territory' and xcode='"+xterritory+"' and zactive='1'")   
+		set tso=cappo.xsp("xterritory='"+terrtry+"' and xsubcat='"+xsubcat+"' and zactive='1' and xtype='TSO'")
+		set xso=tso
+	   end if
+	   
+	   set tofficer=cappo.xsp("xsp='"+xso+"'")
+
+	    set sro=cappo.xsro("xsp='"+xso+"' and xtype='TSO'")   
+		set temp=#sesql("update b set b.xdivisionop=a.xdivisionop,b.xareaop=a.xareaop from xcodes a join cacus b on b.xterritory=a.xcode and b.zid=a.zid where  b.xcus='"+xcus+"' and b.zid='"+#id+"' and  a.xtype='OP Territory' and a.xtypeobj='Territory' and isnull(b.xterritory,'')<>'' ")
+			
+		if xsubcat .eq. ""
+          error "Cannot Proceed -- Please Choose Sales Category!"
+        else if xgcus .eq. ""
+          error "Cannot Proceed -- Please Choose Customer Group"
+		else if tofficer .eq. "" 
+			error "Cannot Proceed -- TSO not Found !"
+        else if xpaymentterm .eq. "" 
+			error "Cannot Proceed -- Please Choose  Payment Term !"	
+		end if
+			   set xstatus="Open"
+	end event
+	event after
+	  
+	   set temp=#sesql("update b set b.xterritory=c.xterritory,b.xareaop=c.xarea from cacus b join cappo c on c.xsp=b.xso  where c.xtype='TSO' and c.xsp='"+tofficer+"' and c.xsubcat='"+xsubcat+"' and c.zid='"+#id+"' ")  
+	   set temp=#sesql("update b set b.xdivisionop=a.xdivisionop from xcodes a join cacus b on b.xterritory=a.xcode and b.zid=a.zid where  b.xcus='"+xcus+"' and b.zid='"+#id+"' and  a.xtype='OP Territory' and a.xtypeobj='Territory' and isnull(b.xterritory,'')<>'' ")
+	   
+	  action show
+	 end event
+    end field	
+	
+	field Confirm
+           event before
+		  
+			if xcus .eq. ""
+				  error "Cannot Proceed -- Please Choose Customer"
+			else if xgcus .eq. ""
+				  error "Cannot Proceed -- Please Choose Customer Group"
+			else if xorg .eq. ""
+				error "Cannot Proceed -- Customer Name is Blank"
+			
+			end if
+            end event
+
+           event after
+              //set temp = #spsql(zabsp_PO_confirmGRN,#id,#user,xgrnnum,xdate,xwh,6)
+			  	set temp =  #spsql(zabsp_Confirmed_Request,#id,#user,#position,xwh,xcus,"Customer Approval")
+              action show
+           end event
+    end field
+
+
+
+    field xorg
+    	caption Customer Name
+    end field
+
+    field Return
+        embed onclick="clicked(this)"
+    end field
+
+    field Special_Discount
+        embed onclick="clicked(this)"
+    end field
+
+	
+    field Special_Rate
+        embed onclick="clicked(this)"
+    end field
+	
+    field Sales
+        embed onclick="clicked(this)"
+    end field
+
+    field Project
+        embed onclick="clicked(this)"
+    end field
+
+    field Credit
+        embed onclick="clicked(this)"
+    end field
+
+    field Special_Bonus
+        embed onclick="clicked(this)"
+    end field
+	
+	field Update
+        embed onclick="clicked(this)"
+    end field
+	
+
+        embed onsubmit="submitit(this)"
+
+     end form
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var but
+        var result
+
+        function clicked(b){
+          but = b.value
+        }
+        function submitit(form){
+          result = true
+          if (but == "Return"){
+            form.screen.value = "cacusupdateheader"
+            form.searchbutton.value = "Find xcus=?"
+          }
+		 if (but=="Update"){
+           if(confirm('Are You Confirm ?')){
+			form.searchbutton.value = "Update"
+			document.getElementById("Confirm").disabled = true;
+			document.getElementById("Update").disabled = true;
+			document.getElementById("Delete").disabled = true;
+			// document.getElementById("Detail").disabled = true;
+			}else{
+			form.searchbutton.value = "Show"
+			}
+          }
+          if (but == "Special_Discount"){
+            form.screen.value = "cacusdiscupdateop"
+            form.searchbutton.value = "Find xcus=?"
+          }
+
+          if (but == "Special_Rate"){
+            form.screen.value = "cacuspriceupdateopb"
+            form.searchbutton.value = "Find xcus=?"
+          }
+
+          if (but == "Special_Bonus"){
+            form.screen.value = "cacusbonusupopb"
+            form.searchbutton.value = "Find xcus=?"
+          }
+
+		  if (but=="Project Flag"){
+            form.screen.value = "cacuspjdetailupdate"
+            form.searchbutton.value = "Find xcus=?"
+          }	
+
+		  if (but=="Sales Location"){
+            form.screen.value = "cacuspjdetailupdate"
+            form.searchbutton.value = "Find xcus=?"
+          }
+          if (but == "Credit Info"){
+            form.screen.value = "cacuscreditupdateopb"
+            form.searchbutton.value = "Top"
+          }
+          return result
+        }
+        </script>
+     end jscript
+
+end screen

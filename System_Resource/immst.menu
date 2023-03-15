@@ -1,0 +1,43 @@
+//im.menu
+//-------------------------------------------------------------------
+option                           |action
+//-------------------------------------------------------------------
+Product Master               |#classPath+"/login?screen=caitem"
+Product Master(General)      |#classPath+"/login?screen=caitemg"
+Product Update               |#classPath+"/login?screen=caitemupdate"
+
+Cost Master                |#classPath+"/login?screen=caitemcost"
+Service Item Master        |#classPath+"/login?screen=caitemservice"
+//Item Category              |#classPath+"/login?screen=xcodes(xtype=Item Category)"
+Sub Category               |#classPath+"/login?screen=xcodes(xtype=Sub Category)"
+Item Account Category      |#classPath+"/login?screen=xcodes(xtype=Item Account Category)"
+Group Category                    |#classPath+"/login?screen=xcodes(xtype=Group Category)"
+//Item Type                  |#classPath+"/login?screen=xcodes(xtype=Item Type)"
+Stock Category                  |#classPath+"/login?screen=xcodes(xtype=Stock Category)"
+Type of Scheduled Stock                  |#classPath+"/login?screen=xcodes(xtype=Type of Scheduled Stock)"
+Product Model                  |#classPath+"/login?screen=xcodes(xtype=Product Model)"
+
+//Item Type                  |#classPath+"/login?screen=xcodes(xtype=Item Type)"
+//Brand                      |#classPath+"/login?screen=xcodes(xtype=Brand)"
+//Quotation Specification    |#classPath+"/login?screen=xcodes(xtype=Quotation Specification)"
+//Product Size               |#classPath+"/login?screen=xcodes(xtype=Product Size)"
+//Cost group                 |#classPath+"/login?screen=xcodes(xtype=Cost Group)"
+//Product Master             |#classPath+"/login?screen=caitem"
+//Product Type               |#classPath+"/login?screen=xcodes(xtype=Product Type)"
+//Item Class                 |#classPath+"/login?screen=xcodes(xtype=Item Class)"
+Rack No                      |#classPath+"/login?screen=xcodes(xtype=Rack No)"
+//Item Code                  |#classPath+"/login?screen=xtrn(xtypetrn=Item Code)"
+Item Group                   |#classPath+"/login?screen=xcodesgitem"
+Service Group                 |#classPath+"/login?screen=xcodesgservice"
+Unit Of Measurement          |#classPath+"/login?screen=xcodes(xtype=Unit of Measure)"
+//Item Group                   |#classPath+"/login?screen=xcodesgitem"
+
+Service Category (new)		   |#classPath+"/login?screen=xcodescatservice"
+Item Category (new)		   	   |#classPath+"/login?screen=xcodescatitem"
+Service Type  (new)                |#classPath+"/login?screen=xcodestypeservice"
+Item Type  (new)                |#classPath+"/login?screen=xcodestypeitem"
+Service/Product category  (update)                |#classPath+"/login?screen=xcodescat"
+Service/Product Type  (update)                |#classPath+"/login?screen=xcodestype"
+
+//-------------------------------------------------------------------
+

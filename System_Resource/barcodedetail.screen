@@ -1,0 +1,74 @@
+screen barcodedetail
+
+	sidebar list dt
+	sections form one,jscript myscript
+
+    list dt
+    caption " CTS ORDER Detail--- "
+    table ctsdetailtemp
+     primary key id,xrow 
+     order id,xrow 
+
+     rows 500
+	 maxwidth 700
+     objects   xrow attrib(link "login?screen=barcodedetail&command=Show&xrow=?"),product_code,barcode,xtype,operation_type,deviceCode,order_detail_id
+
+
+    headers "Row","Product Code" ,"Barcode" ,"Type","Operation Description","Device_Code","Order Detail ID" //,"","Opration Status"
+ 
+    end list	 
+
+
+    form one
+        caption " CTS ORDER Detail "
+		primary key id,xrow 
+        table ctsdetailtemp
+        order id,xrow  
+		
+        return "login"
+        layout 2
+        pstyle 3
+         objects Show,Clear,Next,Previous,Return,Delete,Update_QR_Code,~ //,Add,Update,Delete,Confirm_Shrinkage,Confirm_Damage,Update,Show *next,Top,Previous,Next,Bottom,Day_End_Summary
+           xrow,xtype,order_detail_id,product_code,barcode,operation_type,deviceCode,order_detail_id display(h)
+		 
+//----------------Declare Local Field--------------------
+		
+
+        field Update_QR_Code
+          event after
+          set temp=#sql("update ctsdetail set xbodycode='"+xbodycode+"' where xdornum='"+xdornum+"' and productCode1='"+productCode1+"' ")
+          end event
+        end field
+	
+
+        embed onsubmit="submitit(this)"
+
+     end form
+
+
+     jscript myscript
+
+        <script language="javascript" type="text/javascript">
+        var detail
+        function clicked(b){
+          detail=b.value
+        }
+        function submitit(form){
+	  
+            //return false
+        }
+		
+	 function pickItem(link){//,type
+          if (navigator.appName.indexOf("Netscape") >= 0){
+            document.one.xporeqnum.value=link.text
+			//document.one.xtype.value=type.text
+          }else{
+            document.one.xporeqnum.value=link.innerText
+			//document.one.xtype.value=type.innerText
+          }
+          return false
+        }
+        </script>
+     end jscript
+
+ end screen
