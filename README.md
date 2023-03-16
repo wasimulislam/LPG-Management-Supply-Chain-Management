@@ -1,2 +1,2 @@
-# LPG-Management-Supply-Chain-Management
+# LPG--Sales-Distribution-Management
 An LPG supply chain management system with processes and reports
